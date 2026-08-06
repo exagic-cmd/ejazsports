@@ -1,0 +1,135 @@
+@extends('layouts.app')
+
+
+@section('content')
+
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Add New Account</h2>
+                <div>
+                    <button onclick="setFormSubmitting();document.getElementById('form').submit()" class="btn btn-md rounded font-sm hover-up">Save</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Basic</h4>
+                </div>
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                <div class="card-body">
+                    <form action="{{route('accounts.store')}}" method="post" id="form" autocomplete="false">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="product_name" class="form-label">Name</label>
+                            <input  type="text" name="name" placeholder="Type here" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}">
+                            @error('name')
+                            <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-4">
+                            <label for="product_name" class="form-label">Email</label>
+                            <input  type="text" autocomplete="false" name="email" placeholder="Type here" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
+                            @error('email')
+                            <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-4">
+                            <label for="product_name" class="form-label">Phone Number</label>
+                            <input  type="text" name="phone_number" placeholder="Type here" class="form-control @error('phone_number') is-invalid @enderror" value="{{ old('phone_number') }}">
+                            @error('phone_number')
+                            <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-4">
+                            <label for="product_name" class="form-label">Password</label>
+                            <input  type="password" name="password" placeholder="Type here" class="form-control @error('password') is-invalid @enderror" >
+                            @error('password')
+                            <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-4">
+                            <label for="product_name" class="form-label">Confirm Password</label>
+                            <input  type="password" name="password_confirmation" placeholder="Type here" class="form-control @error('password_confirmation') is-invalid @enderror" >
+                            @error('password_confirmation')
+                            <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="role" class="form-label">Store (if any)</label>
+                            <select class="form-control select2"
+                                    name="store_id">
+                                <option value="">None</option>
+
+                                @foreach($stores as $store)
+                                    <option value="{{ $store->id }}">{{ $store->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('store_id')
+                            <span class="text-danger text-left">{{ $errors->first('store_id') }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="role" class="form-label">Role</label>
+                            <select class="form-control select2"
+                                    name="role[]" multiple required>
+
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('role')
+                                <span class="text-danger text-left">{{ $errors->first('role') }}</span>
+                            @enderror
+                        </div>
+
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+@stop
+
+@section('js')
+    <script>
+        $('.select2').select2();
+    </script>
+
+    <script>
+        var formSubmitting = false;
+        var setFormSubmitting = function() { formSubmitting = true; };
+
+        window.onload = function() {
+            window.addEventListener("beforeunload", function (e) {
+                if (formSubmitting) {
+                    return undefined;
+                }
+
+                var confirmationMessage = 'It looks like you have been editing something. '
+                    + 'If you leave before saving, your changes will be lost.';
+
+                (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+                return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+            });
+        };
+    </script>
+
+    @stop
+

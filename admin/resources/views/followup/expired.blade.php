@@ -1,0 +1,127 @@
+@extends('layouts.app')
+
+
+
+
+@section('content')
+
+
+            <div class="container-fluid">
+                <!-- /row -->
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="white-box">
+                            
+                            <h3 class="box-title">All Expired FollowUps</h3>
+
+                            <div class="table-responsive">
+                                <table id="myTable" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Created At</th>
+                                           
+                                            <th>Customer</th>
+                                           
+                                            <th>Remarks</th>
+                                            <th>Next Follow up</th>
+                                            <th>Action</th>
+                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php $count =1;?>
+                                        
+
+
+                                        @foreach($followUps as $f)
+                                        
+                                        <tr>
+                                            <td>{{$count++}}</td>
+                                            <td>{{date('d-m-Y h:i',strtotime($f->created_at))}}</td>
+                                            
+                                           
+                                            <td>{{$f->customer ? $f->customer->first_name : ''}}</td>
+                                           
+                                            <td>{{$f->detail[0]->remarks}}</td>
+                                            <td>{{date('d-m-Y',strtotime($f->next_followup_date))}}</td>
+                                            
+                                            <td class="text-nowrap">
+
+                                                
+                                                <a onclick="openHistoryModal({{$f->id}})" href="#!" data-toggle="tooltip" data-original-title="Follow up"> <i class="fa fa-eye text-success"></i> Show History </a>
+                                                
+                                            </td>
+                                        </tr>
+                                       
+                                        @endforeach
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+              </div>
+            <!-- /.container-fluid -->
+
+            <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  
+</div>
+
+@stop
+
+@section('js')
+<script>
+    $(function() {
+        $('#myTable').DataTable({
+            'pageLength':50
+        });
+    });
+
+    function openHistoryModal(followup_id) {
+
+        var data={'followup_id':followup_id};
+        $.get('/show_followup_history', data, function (data) {
+            document.getElementById('exampleModal1').innerHTML = data;
+            $('#exampleModal1').modal('show');
+        });
+    }
+    
+       
+    function closeChat() {
+
+            $('#exampleModal1').modal('hide');
+        
+    }
+    
+    function updateChat() {
+
+    data = {'followup_id':$('#followup_id').val(),'remarks':$('#remarks').val(),'next_followup_date':$('#next_followup_date').val()};
+
+    $.get('/update_followup', data, function (data) {
+
+        $('#exampleModal1').modal('toggle');
+
+        toastr.success("Follow up Updated.");
+
+    });
+}
+
+function completeFollowup(followup_id) {
+
+    data = {'followup_id':followup_id};
+
+    $.get('/complete_followup', data, function (data) {
+
+        document.getElementById('exampleModal1').innerHTML = data;
+
+        toastr.success("Follow up Completed Successfully.");
+
+    });
+}
+
+        
+    </script>
+@stop

@@ -1,0 +1,17 @@
+diff a/pos/resources/views/pos/update-cart-div.blade.php b/pos/resources/views/pos/update-cart-div.blade.php	(rejected hunks)
+@@ -115,7 +115,14 @@
+ 
+                         </td>
+                         </tr>
+-                          <tr><td class="text-left">Grand Total</td> <td class="text-right">Rs. {{number_format($result->data->subTotal - $result->data->discount)}}</td></tr></tbody></table></div></div> <div class="cart-button-container pos-action"><button  type="button" class="btn btn-lg btn-pos-primary customer-btn"><a href="{{route('customer.data')}}"><i class="fa fa-user-circle"></i> <span><b id="customer_name" style="color: white;"> Customer</b></span> <i class="fa fa-pencil"></i></a></button> <button  id="btn-pay" type="button" class="btn btn-lg btn-pos-dark pay-btn"  onclick="holdCartModal()"><b>Hold</b></button> 
++                          <tr><td class="text-left">Grand Total</td> <td class="text-right">Rs. {{number_format($result->data->subTotal - $result->data->discount)}}</td></tr>
++						  </tbody>
++						  </table>
++						  </div>
++						  </div> 
++						  <div class="cart-button-container pos-action"><button  type="button" class="btn btn-lg btn-pos-primary customer-btn">
++						  <a href="{{route('customer.data')}}"><i class="fa fa-user-circle"></i> <span><b id="customer_name" style="color: white;"> Customer</b></span> 
++						  <i class="fa fa-pencil"></i></a></button> <button  id="btn-pay" type="button" class="btn btn-lg btn-pos-dark pay-btn"  onclick="holdCartModal()"><b>Hold</b></button> 
+                           <button type="button" class="btn btn-lg btn-pos-primary hold-btn"onclick="updatePayment()" ><b> Pay</b></button>
+                           
+                           

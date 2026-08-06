@@ -1,0 +1,92 @@
+/*Downloaded from https://www.codeseek.co/Sambra22/pos-receipt-template-html-css-JNexJP */
+#invoice-POS {
+
+    background: #FFF;
+}
+#invoice-POS ::selection {
+    background: #f31544;
+    color: #000;
+}
+#invoice-POS ::moz-selection {
+    background: #f31544;
+    color: #0c0c0c;
+}
+#invoice-POS h1 {
+    font-size: 1.5em;
+    color: #000000;
+}
+#invoice-POS h2 {
+    font-size: 0.6em;
+}
+#invoice-POS h3 {
+    font-size: 1em;
+    font-weight: 300;
+    line-height: 2em;
+}
+#invoice-POS p {
+    font-size: 0.7em;
+    color: #000000;
+    line-height: 0.5;
+}
+#invoice-POS #top, #invoice-POS #mid, #invoice-POS #bot {
+    /* Targets all id with 'col-' */
+    /*border-bottom: 1px solid #EEE;*/
+}
+#invoice-POS #top {
+    /*min-height: 100px;*/
+}
+#invoice-POS #mid {
+    min-height: 65px;
+}
+#invoice-POS #bot {
+    min-height: 50px;
+}
+#invoice-POS #top .logo {
+    height: 48px;
+    width: 118px;
+    /*background: url('/images/logo.png') no-repeat;*/
+    /*background-size: 60px 60px;*/
+}
+#invoice-POS .clientlogo {
+    float: left;
+    height: 60px;
+    width: 60px;
+    background: url(http://michaeltruong.ca/images/client.jpg) no-repeat;
+    background-size: 60px 60px;
+    border-radius: 50px;
+}
+#invoice-POS .info {
+    display: block;
+    margin-left: 0;
+}
+#invoice-POS .title {
+    float: right;
+}
+#invoice-POS .title p {
+    text-align: right;
+}
+#invoice-POS table {
+    width: 100%;
+    border-collapse: collapse;
+}
+#invoice-POS .tabletitle {
+    border-top: 2px dotted;
+    border-bottom: 2px dotted;
+}
+#invoice-POS .service {
+    border-bottom: 1px solid #474545
+;
+}
+#invoice-POS .item {
+    width: 55%;
+}
+#invoice-POS .itemtext {
+    font-size: 0.6em;
+}
+#invoice-POS #legalcopy {
+    margin-top: 5mm;
+}
+/* Dashed red border */
+hr.new2 {
+    border-top: 1px dashed black;
+}

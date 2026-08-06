@@ -1,0 +1,34 @@
+@extends('layouts.app')
+
+@section('content')
+
+    <section class="content-main">
+        <div class="row">
+            <div class="col-9">
+                <div class="content-header">
+                    <h2 class="content-title">Add New Color</h2>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form action="{{route('colors.store')}}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="mb-4">
+                                <label for="color_name" class="form-label">Color Name <span class="text-danger">*</span></label>
+                                <input type="text" name="name" placeholder="Type here" class="form-control @error('name') is-invalid @enderror" id="color_name" value="{{ old('name') }}">
+                                @error('name')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                                @enderror
+                            </div>
+                            <button type="submit" class="btn btn-primary float-end">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+@stop
