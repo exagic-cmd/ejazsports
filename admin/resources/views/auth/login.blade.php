@@ -30,7 +30,7 @@
     <section class="content-main mt-80 mb-80">
         <div class="card mx-auto card-login">
             <div class="card-body">
-                <h4 class="card-title mb-4">Sign in</h4>
+                <h4 class="card-title mb-4">Sign in ..</h4>
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
                     @if($errors->has('email'))
