@@ -455,9 +455,9 @@ class POSController extends BaseController
                     $total += $calculatedPrice * $cart['qty'];
 
                     if ($request->customer_id && $request->customer_id != 1) {
-                        $basePrice = $variantId ? ($product->variants[0]->additional_price ?? 0) : ($product->price ?? 0);
+                        $basePrice = $variantId ? ($product->variants[0]->purchase_price ?? 0) : ($product->purchase_price ?? 0);
                     } else {
-                        $basePrice = $variantId ? ($product->variants[0]->additional_price ?? 0) : ($product->price ?? 0);
+                        $basePrice = $variantId ? ($product->variants[0]->purchase_price ?? 0) : ($product->purchase_price ?? 0);
                     }
                     $margin += (($calculatedPrice - $basePrice) * $cart['qty']);
                 } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -481,10 +481,10 @@ class POSController extends BaseController
 
                     if ($request->customer_id && $request->customer_id != 1) {
                         $currentPrice = $manualPrice > 0 ? max($manualPrice, $bundleData->additional_price ?? 0) : ($bundleData->additional_price ?? 0);
-                        $basePrice = $bundleData->additional_price ?? 0;
+                        $basePrice = $bundleData->purchase_price ?? 0;
                     } else {
                         $currentPrice = $manualPrice > 0 ? max($manualPrice, $bundleData->additional_price ?? 0) : ($bundleData->additional_price ?? 0);
-                        $basePrice = $bundleData->additional_price ?? 0;
+                        $basePrice = $bundleData->purchase_price ?? 0;
                     }
 
                     $total += $currentPrice * $qty;
@@ -582,9 +582,9 @@ class POSController extends BaseController
                     $total += $calculatedPrice * $cart['qty'];
 
                     if ($request->customer_id && $request->customer_id != 1) {
-                        $basePrice = $variantId ? ($product->variants[0]->additional_price ?? 0) : ($product->price ?? 0);
+                        $basePrice = $variantId ? ($product->variants[0]->purchase_price ?? 0) : ($product->purchase_price ?? 0);
                     } else {
-                        $basePrice = $variantId ? ($product->variants[0]->additional_price ?? 0) : ($product->price ?? 0);
+                        $basePrice = $variantId ? ($product->variants[0]->purchase_price ?? 0) : ($product->purchase_price ?? 0);
                     }
                     $margin += (($calculatedPrice - $basePrice) * $cart['qty']);
                 } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -610,7 +610,7 @@ class POSController extends BaseController
                     } else {
                         $currentPrice = $manualPrice > 0 ? max($manualPrice, $bundleData->additional_price ?? 0) : ($bundleData->additional_price ?? 0);
                     }
-                    $basePrice = $bundleData->additional_price ?? 0;
+                    $basePrice = $bundleData->purchase_price ?? 0;
 
                     $total += $currentPrice * $qty;
                     $margin += (($currentPrice - $basePrice) * $qty);

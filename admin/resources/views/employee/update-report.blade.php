@@ -196,7 +196,8 @@
                     @foreach($returnOrders as $o)
                     @php
                         $rate = ($o->customer_id == 1) ? $employee->com_per_retail : $employee->com_per_whole;
-                        $com = -round(($o->margin - $o->discount_amount) * ($rate / 100));
+                        $proportion = $o->total_amount > 0 ? ($o->return_amount / $o->total_amount) : 1;
+                        $com = -round(($o->margin - $o->discount_amount) * $proportion * ($rate / 100));
                     @endphp
                             <tr>
 

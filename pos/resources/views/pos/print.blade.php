@@ -425,6 +425,17 @@ foreach ($result->data->order->products as $p) {
                     </tr>
 
                     @if ($result->data->order->customer_id != 1)
+                        {{-- Previous Balance --}}
+                        <tr style="border-bottom:2px dotted;">
+                            <td></td>
+                            <td class="Rate">
+                                <h2>Previous Balance</h2>
+                            </td>
+                            <td class="payment" colspan="3">
+                                <h2>Rs.{{ number_format($correct_previous_balance) }}</h2>
+                            </td>
+                        </tr>
+
                         {{-- Total Payable: this order + previous balance --}}
                         <tr style="border-bottom:2px dotted;">
                             <td></td>
