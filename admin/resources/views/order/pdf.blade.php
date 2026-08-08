@@ -169,6 +169,60 @@
                             ?>
                         </tr>
                         @endforeach
+                        
+                        <?php $has_return = false; $return_total_qty = 0; $return_total_amount = 0; ?>
+                        @foreach($order->products as $p)
+                            @if($p->returned && $p->return_qty > 0)
+                                <?php $has_return = true; ?>
+                            @endif
+                        @endforeach
+
+                        @if($has_return)
+                        <tr>
+                            <td colspan="5" style="text-align:center; background-color: #f2f2f2; font-weight: bold;">Return Items</td>
+                        </tr>
+                        @foreach($order->products as $p)
+                            @php
+                                if (isset($p->is_bundle_item) && $p->is_bundle_item) {
+                                    continue;
+                                }
+
+                                if (!$p->returned || $p->return_qty <= 0) {
+                                    continue;
+                                }
+
+                                $title = $p->product->title ?? ($p->bundle->name ?? 'Bundle');
+                                $variantText = '';
+                                if ($p->variant) {
+                                    $variantText = trim(($p->variant->shade ?? '') . ($p->variant->size ? ' - ' . $p->variant->size : ''));
+                                }
+                                $lineTotal = $p->price * $p->return_qty;
+                                $return_total_qty += $p->return_qty;
+                                $return_total_amount += $lineTotal;
+                            @endphp
+                            <tr style="background-color: #ffe6e6;">
+                                <td>{{$sr++}}</td>
+                                <td class="lefttt">
+                                    {{$title}}
+                                    @if(isset($p->bundle) && !empty($p->bundle->short_desc))
+                                        <br><small>{{$p->bundle->short_desc}}</small>
+                                    @endif
+                                    @if($variantText)
+                                        ({{$variantText}})
+                                    @endif
+                                </td>
+                                <td>{{number_format($p->price)}}</td>
+                                <td>{{$p->return_qty}}</td>
+                                <td>{{number_format($lineTotal)}}</td>
+                            </tr>
+                        @endforeach
+                        <tr style="background-color: #ffe6e6; font-weight: bold;">
+                            <td colspan="3" style="text-align:right;">Return Amount:</td>
+                            <td>{{$return_total_qty}}</td>
+                            <td>- Rs.{{number_format($return_total_amount)}}</td>
+                        </tr>
+                        @endif
+
                     </tbody>
                     <tfoot>
                         <tr>
@@ -182,7 +236,7 @@
                         </tr>
                         <tr>
                             <td colspan="4">Payable:</td>
-                            <td>Rs.{{number_format($order->total_amount)}}</td>
+                            <td>Rs.{{number_format($order->total_amount - $order->return_amount)}}</td>
                         </tr>
                     </tfoot>
                 </table>

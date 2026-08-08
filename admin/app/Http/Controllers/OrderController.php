@@ -392,9 +392,7 @@ class OrderController extends Controller
     }
 
     public function printOrder($id) {
-        $data['order'] = Order::with('products.product', 'products.variant', 'products.bundle')->where('id',$id)->first();
-
-        return view('order.print',$data);
+        return $this->downloadPosReturn($id);
     }
      public function printa4Order($id) {
         $data['order'] = Order::with('products.product', 'products.variant', 'products.bundle')->where('id',$id)->first();

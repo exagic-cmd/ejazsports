@@ -163,6 +163,59 @@
                         
                     </tr>
                     @endforeach
+
+                    <?php $has_return = false; $return_total_qty = 0; $return_total_amount = 0; ?>
+                    @foreach($order->products as $p)
+                        @if($p->returned && $p->return_qty > 0)
+                            <?php $has_return = true; ?>
+                        @endif
+                    @endforeach
+
+                    @if($has_return)
+                    <tr>
+                        <td colspan="5" style="text-align:center;">
+                            <h2 style="margin: 10px 0;">Return Items</h2>
+                        </td>
+                    </tr>
+                    @foreach($order->products as $p)
+                        @php
+                            if (isset($p->is_bundle_item) && $p->is_bundle_item) {
+                                continue;
+                            }
+
+                            if (!$p->returned || $p->return_qty <= 0) {
+                                continue;
+                            }
+
+                            $title = $p->product->title ?? ($p->bundle->name ?? 'Bundle');
+                            $variantText = '';
+                            if ($p->variant) {
+                                $variantText = trim(($p->variant->shade ?? '') . ($p->variant->size ? ' - ' . $p->variant->size : ''));
+                            }
+                            $lineTotal = $p->price * $p->return_qty;
+                            $return_total_qty += $p->return_qty;
+                            $return_total_amount += $lineTotal;
+                        @endphp
+                        <tr class="service" style="background-color: #ffe6e6;">
+                            <td class="tableitem"><p>{{$sr++}}</p></td>
+                            <td class="tableitem">
+                                <p class="itemtext" style="line-height: 1.5">{{$title}}
+                                @if(isset($p->bundle) && !empty($p->bundle->short_desc))<br><small>{{$p->bundle->short_desc}}</small>@endif
+                                @if($variantText)<br>({{$variantText}})@endif</p>
+                            </td>
+                            <td class="tableitem"><p class="itemtext">{{number_format($p->price)}}</p></td>
+                            <td class="tableitem"><p class="itemtext">{{$p->return_qty}}</p></td>
+                            <td class="tableitem"><p class="itemtext">{{number_format($lineTotal)}}</p></td>
+                        </tr>
+                    @endforeach
+                    <tr style="border-top: 2px dotted;">
+                        <td></td>
+                        <td class="Rate" style="text-align:right;" colspan="2"><h2>Return Amount:</h2></td>
+                        <td class="Rate"><h2>{{$return_total_qty}}</h2></td>
+                        <td class="Rate"><h2>- Rs.{{number_format($return_total_amount)}}</h2></td>
+                    </tr>
+                    @endif
+
                     <tr style="border-top: 2px dotted;">
                         <td class="Rate">
                             <h2>Total Item: ({{$totalItems}})</h2>
@@ -177,12 +230,6 @@
                             <h2>Rs.{{number_format($order->total_amount - $order->delivery_charges + $order->discount_amount)}}</h2>
                         </td>
                     </tr>
-                    <!--<tr >-->
-                    <!--    <td></td>-->
-                    <!--    <td></td>-->
-                    <!--    <td class="Rate" colspan="4"><h2>Delivery Charges : </h2></td>-->
-                    <!--    <td class="payment"><h2>Rs.{{number_format($order->delivery_charges)}}</h2></td>-->
-                    <!--</tr>-->
                     <tr>
                         <td></td>
                         <td></td>
@@ -200,15 +247,11 @@
                             <h2>Payable</h2>
                         </td>
                         <td class="payment">
-                            <h2>Rs.{{number_format($order->total_amount)}}</h2>
+                            <h2>Rs.{{number_format($order->total_amount - $order->return_amount)}}</h2>
                         </td>
                     </tr>
                 </table>
             </div><!--End Table-->
-            <!--<div id="legalcopy">-->
-            <!--    <p class="legal" style="    text-align: center;line-height: 1.5;">Verify this invoice through FBR  TaxAsaanMobileApp or SMS at 9966 and win exciting prizes in draw-->
-            <!--    </p>-->
-            <!--</div>-->
         </div><!--End InvoiceBot-->
     </div><!--End Invoice-->
     <script>
