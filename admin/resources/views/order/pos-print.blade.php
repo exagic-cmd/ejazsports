@@ -93,7 +93,7 @@ $total_order_amount = $result->data->order->total_amount;
                     </p>
                 </div>
                 <div>
-                    <p><b>Employee Name: </b>{{ $result->data->order->employee->name }}</p>
+                    <p><b>Employee Name: </b>{{ optional($result->data->order->employee)->name ?? 'N/A' }}</p>
                 </div>
             </div>
         </div>
@@ -196,7 +196,7 @@ foreach ($result->data->order->products as $p) {
                                         continue;
 
                                     // Bundle name from the eager-loaded relationship (comes from admin API)
-                                    $bundle_name = isset($bundle_parent->bundle->name) ? $bundle_parent->bundle->name : 'Bundle #' . $group['bundle_id'];
+                                    $bundle_name = optional($bundle_parent->bundle)->name ?? 'Bundle #' . $group['bundle_id'];
 
                                     // Main bundle values (show full original sale quantity)
                                     $bundle_price_per_unit = $bundle_parent->price;
