@@ -457,7 +457,7 @@ class POSController extends BaseController
                     if ($request->customer_id && $request->customer_id != 1) {
                         $basePrice = $variantId ? ($product->variants[0]->purchase_price ?? 0) : ($product->purchase_price ?? 0);
                     } else {
-                        $basePrice = $variantId ? ($product->variants[0]->purchase_price ?? 0) : ($product->purchase_price ?? 0);
+                        $basePrice = $variantId ? ($product->variants[0]->additional_price ?? 0) : ($product->price ?? 0);
                     }
                     $margin += (($calculatedPrice - $basePrice) * $cart['qty']);
                 } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -484,7 +484,7 @@ class POSController extends BaseController
                         $basePrice = $bundleData->purchase_price ?? 0;
                     } else {
                         $currentPrice = $manualPrice > 0 ? max($manualPrice, $bundleData->additional_price ?? 0) : ($bundleData->additional_price ?? 0);
-                        $basePrice = $bundleData->purchase_price ?? 0;
+                        $basePrice = $bundleData->additional_price ?? 0;
                     }
 
                     $total += $currentPrice * $qty;
@@ -584,7 +584,7 @@ class POSController extends BaseController
                     if ($request->customer_id && $request->customer_id != 1) {
                         $basePrice = $variantId ? ($product->variants[0]->purchase_price ?? 0) : ($product->purchase_price ?? 0);
                     } else {
-                        $basePrice = $variantId ? ($product->variants[0]->purchase_price ?? 0) : ($product->purchase_price ?? 0);
+                        $basePrice = $variantId ? ($product->variants[0]->additional_price ?? 0) : ($product->price ?? 0);
                     }
                     $margin += (($calculatedPrice - $basePrice) * $cart['qty']);
                 } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -610,7 +610,11 @@ class POSController extends BaseController
                     } else {
                         $currentPrice = $manualPrice > 0 ? max($manualPrice, $bundleData->additional_price ?? 0) : ($bundleData->additional_price ?? 0);
                     }
-                    $basePrice = $bundleData->purchase_price ?? 0;
+                    if ($request->customer_id && $request->customer_id != 1) {
+                        $basePrice = $bundleData->purchase_price ?? 0;
+                    } else {
+                        $basePrice = $bundleData->additional_price ?? 0;
+                    }
 
                     $total += $currentPrice * $qty;
                     $margin += (($currentPrice - $basePrice) * $qty);
@@ -1392,6 +1396,88 @@ class POSController extends BaseController
                         $component->save();
 
                         if ($request->get('adjust_type') == 1) {
+                            $storeId = $request->store_id;
+
+                            // Get current available stock
+                            $currentStock = $component->variant_id
+                                ? ProductVariant::where('id', $component->variant_id)->value('available_stock') ?? 0
+                                : Product::where('id', $componentProduct->id)->value('available_stock') ?? 0;
+
+                            $remainingQty = $componentQty;
+
+                            // Step 1: Neutralize negative stock first
+                            if ($currentStock < 0) {
+                                $neutralize = min($remainingQty, abs($currentStock));
+                                $remainingQty -= $neutralize;
+                                // No need to touch StoreProductStock — just increasing stock offsets oversell
+                            }
+
+                            // Step 2: Deduct from actual sold_qty (FIFO)
+                            if ($remainingQty > 0) {
+                                $query = StoreProductStock::where('store_id', $storeId)
+                                    ->where('sold_qty', '>', 0);
+
+                                if ($component->variant_id) {
+                                    $query->where('variant_id', $component->variant_id);
+                                } else {
+                                    $query->where('product_id', $componentProduct->id)->whereNull('variant_id');
+                                }
+
+                                $records = $query->orderBy('id', 'DESC')->get();
+                                $stillNeed = $remainingQty;
+
+                                foreach ($records as $stock) {
+                                    if ($stillNeed <= 0)
+                                        break;
+
+                                    $avail = $stock->sold_qty;
+                                    if ($stillNeed >= $avail) {
+                                        $stillNeed -= $avail;
+                                        StoreProductStock::where('id', $stock->id)->update(['sold_qty' => 0]);
+                                    } else {
+                                        StoreProductStock::where('id', $stock->id)->decrement('sold_qty', $stillNeed);
+                                        $stillNeed = 0;
+                                    }
+                                }
+
+                                // Step 3: If still leftover → create system receiving
+                                if ($stillNeed > 0) {
+                                    $receiving = Receiving::create([
+                                        'po_id' => null,
+                                        'store_id' => $storeId,
+                                        'cargo_no' => 'Return Excess - System',
+                                        'date' => now(),
+                                        'status' => 2,
+                                        'created_by' => auth()->id() ?? 1,
+                                        'comment' => 'Excess return - negative stock offset',
+                                        'payment_method' => 1,
+                                        'gross_amount' => 0,
+                                        'net_amount' => 0,
+                                        'total_products' => 1,
+                                        'total_qty' => $stillNeed,
+                                    ]);
+
+                                    ReceivingProduct::create([
+                                        'receiving_id' => $receiving->id,
+                                        'product_id' => $componentProduct->id,
+                                        'product_variant_id' => $component->variant_id ?: null,
+                                        'qty' => $stillNeed,
+                                        'cost_price' => 0,
+                                    ]);
+
+                                    StoreProductStock::create([
+                                        'store_id' => $storeId,
+                                        'product_id' => $componentProduct->id,
+                                        'variant_id' => $component->variant_id ?: null,
+                                        'purchase_qty' => $stillNeed,
+                                        'sold_qty' => 0,
+                                        'receiving_id' => $receiving->id,
+                                        'cost' => 0,
+                                    ]);
+                                }
+                            }
+
+                            // Finally: Always increase available_stock by full return qty
                             if ($component->variant_id) {
                                 ProductVariant::where('id', $component->variant_id)->increment('available_stock', $componentQty);
                                 ProductVariant::where('id', $component->variant_id)->increment('online_available_stock', $componentQty);

@@ -560,7 +560,7 @@ class ProductController extends Controller
 
             $bundle = Bundle::create([
                 'name' => $product->title . ' - ' . $shade,
-                'short_desc' => 'Complete set of sizes for ' . $shade . ' shade',
+                'short_desc' => 'Complete bundle of sizes for ' . $shade . ' shade',
                 'full_desc' => 'This bundle includes all available sizes for the ' . $shade . ' shade of ' . $product->name,
                 'purchase_price' => $totalPurchasePrice,
                 'additional_price' => $totalAdditionalPrice,

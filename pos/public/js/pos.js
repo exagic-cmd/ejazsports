@@ -791,7 +791,9 @@ function selectCustomer(id, name) {
 
 function mannualReturnForm() {
     const cartProducts = JSON.parse(sessionStorage.getItem('cartProducts')) || [];
-    if (cartProducts.length === 0) {
+    const cartBundles = JSON.parse(sessionStorage.getItem('cartBundles')) || [];
+    
+    if (cartProducts.length === 0 && cartBundles.length === 0) {
         toastr.error('Warning: Current cart is empty!');
         return;
     }
@@ -811,6 +813,7 @@ function mannualReturnForm() {
         credentials: "same-origin",
         body: JSON.stringify({
             cart: cartProducts,
+            bundles: cartBundles,
             discount_id: sessionStorage.getItem('discount'),
             customer_id: sessionStorage.getItem('customer_id'),
             manual_return_only: sessionStorage.getItem('manual_return_only') || '0',
@@ -925,7 +928,9 @@ function createSaleWithPrint() {
 
 function createReturn() {
     const cartProducts = JSON.parse(sessionStorage.getItem('cartProducts')) || [];
-    if (cartProducts.length === 0) {
+    const cartBundles = JSON.parse(sessionStorage.getItem('cartBundles')) || [];
+    
+    if (cartProducts.length === 0 && cartBundles.length === 0) {
         toastr.error('Cart is empty!');
         return;
     }
@@ -941,6 +946,7 @@ function createReturn() {
         credentials: "same-origin",
         body: JSON.stringify({
             cart: cartProducts,
+            bundles: cartBundles,
             comment: $('#comment').val(),
             customer_id: $('#customer_id').val(),
             sub_total: $('#total').val(),
