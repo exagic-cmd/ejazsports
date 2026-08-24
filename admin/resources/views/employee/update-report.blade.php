@@ -19,6 +19,12 @@
                     
                     @if($o->customer_id == 1)
                     @if($o->return_amount == 0 || $o->return_amount != $o->total_amount)
+                    @php
+                        $netOrderAmt = $o->total_amount - $o->return_amount;
+                        $proportion = $o->total_amount > 0 ? (max(0, $netOrderAmt) / $o->total_amount) : 1;
+                        $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
+                        $com = round($netMargin * ($employee->com_per_retail / 100));
+                    @endphp
                             <tr>
 
                                 <td>{{$sr++}}</td>
@@ -26,14 +32,14 @@
                                 
                               <td><a href="{{route('orders.show',$o->id)}}" target="_blank">{{$o->order_no}}</a></td>
                              
-                                <td>{{number_format(($o->total_amount - $o->return_amount))}}
-                               <?php $orderSum += ($o->total_amount  - $o->return_amount);?></td>
-                               <td>{{($o->margin - $o->discount_amount)}}
-                               <?php $marginSum += ($o->margin - $o->discount_amount);?></td>
-                                 <td>{{round(($o->margin - $o->discount_amount) * ($employee->com_per_retail / 100))}}</td>
+                                <td>{{number_format($netOrderAmt)}}
+                                <?php $orderSum += $netOrderAmt;?></td>
+                                <td>{{number_format($netMargin)}}
+                                <?php $marginSum += $netMargin;?></td>
+                                  <td>{{number_format($com)}}</td>
+                                 
                                 
-                               
-                               <?php $t += round(($o->margin - $o->discount_amount) * ($employee->com_per_retail/100) , 2);?>
+                                <?php $t += $com;?>
                             </tr>
                             @endif
                             @endif
@@ -45,7 +51,7 @@
                                 <td></td>
                                 <td><b>{{number_format($orderSum)}}</b></td>
                                 <td><b>{{number_format($marginSum)}}</b></td>
-                                <td><b>{{$t}}</b></td>
+                                <td><b>{{number_format($t)}}</b></td>
                             </tr>
                             
                            
@@ -78,6 +84,12 @@
                     
                     @if($o->customer_id != 1 && ($o->pay_amount >= $o->total_amount || $o->paid_amount == $o->total_amount || (($o->total_amount - $o->paid_amount) < 10 )))
                     @if($o->return_amount == 0 || $o->return_amount != $o->total_amount)
+                    @php
+                        $netOrderAmt = $o->total_amount - $o->return_amount;
+                        $proportion = $o->total_amount > 0 ? (max(0, $netOrderAmt) / $o->total_amount) : 1;
+                        $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
+                        $com = round($netMargin * ($employee->com_per_whole / 100));
+                    @endphp
                             <tr>
 
                                 <td>{{$sr++}}</td>
@@ -85,15 +97,15 @@
                                 
                               <td><a href="{{route('orders.show',$o->id)}}" target="_blank">{{$o->order_no}}</a></td>
                               
-                               <td>{{number_format(($o->total_amount - $o->return_amount))}}
-                               <?php $orderSum += ($o->total_amount - $o->return_amount);?></td>
+                               <td>{{number_format($netOrderAmt)}}
+                               <?php $orderSum += $netOrderAmt;?></td>
                                
-                               <td>{{($o->margin - $o->discount_amount)}}
-                               <?php $marginSum += ($o->margin - $o->discount_amount);?></td>
-                                 <td>{{round(($o->margin - $o->discount_amount) * ($employee->com_per_whole / 100))}}</td>
+                               <td>{{number_format($netMargin)}}
+                               <?php $marginSum += $netMargin;?></td>
+                                 <td>{{number_format($com)}}</td>
                                 
                                
-                               <?php $t += round(($o->margin - $o->discount_amount) * ($employee->com_per_whole/100) , 2);?>
+                               <?php $t += $com;?>
                             </tr>
                             @endif
                             @endif
@@ -104,7 +116,7 @@
                                 <td></td>
                                 <td><b>{{number_format($orderSum)}}</b></td>
                                 <td><b>{{number_format($marginSum)}}</b></td>
-                                <td><b>{{$t}}</b></td>
+                                <td><b>{{number_format($t)}}</b></td>
                             </tr>
                     
 
@@ -136,6 +148,12 @@
                     
                     @if($o->customer_id != 1 && ($o->pay_amount < $o->total_amount || $o->paid_amount < $o->total_amount))
                      @if($o->return_amount == 0 || $o->return_amount != $o->total_amount)
+                     @php
+                        $netOrderAmt = $o->total_amount - $o->return_amount;
+                        $proportion = $o->total_amount > 0 ? (max(0, $netOrderAmt) / $o->total_amount) : 1;
+                        $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
+                        $com = round($netMargin * ($employee->com_per_whole / 100));
+                     @endphp
                             <tr>
 
                                 <td>{{$sr++}}</td>
@@ -143,15 +161,15 @@
                                 
                               <td><a href="{{route('orders.show',$o->id)}}" target="_blank">{{$o->order_no}}</a></td>
                               
-                               <td>{{number_format(($o->total_amount - $o->return_amount))}}
-                               <?php $orderSum += ($o->total_amount - $o->return_amount);?></td>
-                               
-                               <td>{{($o->margin - $o->discount_amount)}}
-                               <?php $marginSum += ($o->margin - $o->discount_amount);?></td>
-                                <td>{{round(($o->margin - $o->discount_amount) * ($employee->com_per_whole / 100))}}</td>
+                               <td>{{number_format($netOrderAmt)}}
+                               <?php $orderSum += $netOrderAmt;?></td>
+                                
+                               <td>{{number_format($netMargin)}}
+                               <?php $marginSum += $netMargin;?></td>
+                                 <td>{{number_format($com)}}</td>
                                 
                                
-                               <?php $t += round(($o->margin - $o->discount_amount) * ($employee->com_per_whole/100) , 2);?>
+                               <?php $t += $com;?>
                             </tr>
                             
                             @endif
@@ -197,7 +215,8 @@
                     @php
                         $rate = ($o->customer_id == 1) ? $employee->com_per_retail : $employee->com_per_whole;
                         $proportion = $o->total_amount > 0 ? ($o->return_amount / $o->total_amount) : 1;
-                        $com = -round(($o->margin - $o->discount_amount) * $proportion * ($rate / 100));
+                        $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
+                        $com = -round($netMargin * ($rate / 100));
                     @endphp
                             <tr>
 

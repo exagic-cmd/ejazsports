@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@section('css')
+
+<?php $__env->startSection('css'); ?>
 <style>
     .img-wrap img:hover{
         -ms-transform: scale(1.2); /* IE 9 */
@@ -18,8 +18,8 @@
     <link href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css" rel="stylesheet">
 <link href="https://cdn.datatables.net/buttons/1.7.0/css/buttons.dataTables.min.css" rel="stylesheet">
 
-@stop
-@section('content')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('content'); ?>
 
 <div class="content-header">
     <a href="javascript:history.back()"><i class="material-icons md-arrow_back"></i> Go back </a>
@@ -30,30 +30,30 @@
         <div class="row">
             <div class="col-xl col-lg flex-grow-0" style="flex-basis: 230px">
                 <div class="img-thumbnail shadow w-100 bg-white position-relative text-center" style="height: 190px; width: 200px; margin-top: -120px">
-                    <img src="{{asset('imgs/people/avatar-4.png')}}" style="max-width: 80%;!important;" class="center-xy img-fluid" alt="Logo Brand">
+                    <img src="<?php echo e(asset('imgs/people/avatar-4.png')); ?>" style="max-width: 80%;!important;" class="center-xy img-fluid" alt="Logo Brand">
                 </div>
             </div>
             <!--  col.// -->
             <div class="col-xl col-lg">
-                <h3>{{$employee->name}}</h3>
-                <p><span class="badge rounded-pill {{($employee->status) ? 'alert-success' : 'alert-danger'}}">{{($employee->status) ? 'Active' : 'InActive'}}</span>
+                <h3><?php echo e($employee->name); ?></h3>
+                <p><span class="badge rounded-pill <?php echo e(($employee->status) ? 'alert-success' : 'alert-danger'); ?>"><?php echo e(($employee->status) ? 'Active' : 'InActive'); ?></span>
                    
                 </p>
             </div>
             <!--  col.// -->
             <div class="col-xl-4 text-md-end">
-                @can('Edit Employee')
-                <a class="dropdown-item btn btn-primary d-inline" href="{{route('employees.edit',$employee->id)}}">Edit info</a>
-                @endcan
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('Edit Employee')): ?>
+                <a class="dropdown-item btn btn-primary d-inline" href="<?php echo e(route('employees.edit',$employee->id)); ?>">Edit info</a>
+                <?php endif; ?>
 
-                @can('Delete Employee')
-                <form @class('d-inline') onsubmit="return confirm('Do you really want to do this?');" id="delete-form" action="{{ route('employees.destroy',$employee->id) }}" method="POST">
-                @csrf
-                @method('DELETE')
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('Delete Employee')): ?>
+                <form class="<?php echo \Illuminate\Support\Arr::toCssClasses('d-inline') ?>" onsubmit="return confirm('Do you really want to do this?');" id="delete-form" action="<?php echo e(route('employees.destroy',$employee->id)); ?>" method="POST">
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('DELETE'); ?>
 
                 <button style="width: min-content;" class="dropdown-item btn btn-instagram d-inline"  type="submit">Delete</button>
                 </form>
-                @endcan
+                <?php endif; ?>
 
             </div>
             <!--  col.// -->
@@ -69,9 +69,9 @@
                 <h6>Basic</h6>
                 <p>
                     
-                    <b>Mobile Number: </b> {{$employee->mobile_number}} <br>
-                    <b>Commission Per Retail: </b> {{$employee->com_per_retail}} % <br>
-                    <b>Commission Per Whole </b> {{number_format($employee->com_per_whole)}} % <br>
+                    <b>Mobile Number: </b> <?php echo e($employee->mobile_number); ?> <br>
+                    <b>Commission Per Retail: </b> <?php echo e($employee->com_per_retail); ?> % <br>
+                    <b>Commission Per Whole </b> <?php echo e(number_format($employee->com_per_whole)); ?> % <br>
 
                 </p>
             </div>
@@ -85,10 +85,17 @@
                 <div class="row mb-4">
                     <label class="col-lg-3 col-form-label">Date Range<span style="color: red;"> *</span></label>
                     <div class="col-lg-9">
-                        <input type="text" class="form-control "id="daterange-btn" value='{{old('date_range')}}' name='date_range'>
-                        @error('date_range')
-                        <div class="alert alert-danger">{{ $message }}</div>
-                        @enderror
+                        <input type="text" class="form-control "id="daterange-btn" value='<?php echo e(old('date_range')); ?>' name='date_range'>
+                        <?php $__errorArgs = ['date_range'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <div class="alert alert-danger"><?php echo e($message); ?></div>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                     <!-- col.// -->
                 </div>
@@ -121,45 +128,47 @@
                     </tr>
                     </thead>
                     <tbody><?php $sr = 1;$t = 0;$orderSum=0;$marginSum = 0;?>
-                    @foreach($employee->orders as $o)
+                    <?php $__currentLoopData = $employee->orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $o): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     
-                    @if($o->customer_id == 1 && \Carbon\Carbon::parse($o->created_at)->isToday() )
-                    @if($o->return_amount == 0 || $o->return_amount != $o->total_amount)
-                    @php
+                    <?php if($o->customer_id == 1 && \Carbon\Carbon::parse($o->created_at)->isToday() ): ?>
+                    <?php if($o->return_amount == 0 || $o->return_amount != $o->total_amount): ?>
+                    <?php
                         $netOrderAmt = $o->total_amount - $o->return_amount;
                         $proportion = $o->total_amount > 0 ? (max(0, $netOrderAmt) / $o->total_amount) : 1;
                         $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
                         $com = round($netMargin * ($employee->com_per_retail / 100));
-                    @endphp
+                    ?>
                             <tr>
 
-                                <td>{{$sr++}}</td>
-                                <td>{{date('d-m-Y',strtotime($o->created_at))}}</td>
+                                <td><?php echo e($sr++); ?></td>
+                                <td><?php echo e(date('d-m-Y',strtotime($o->created_at))); ?></td>
                                 
-                              <td><a href="{{route('orders.show',$o->id)}}" target="_blank">{{$o->order_no}}</a></td>
+                              <td><a href="<?php echo e(route('orders.show',$o->id)); ?>" target="_blank"><?php echo e($o->order_no); ?></a></td>
                               
                              
-                               <td>{{number_format($netOrderAmt)}}
+                               <td><?php echo e(number_format($netOrderAmt)); ?>
+
                                <?php $orderSum += $netOrderAmt;?></td>
-                               <td>{{number_format($netMargin)}}
+                               <td><?php echo e(number_format($netMargin)); ?>
+
                                <?php $marginSum += $netMargin;?></td>
-                                 <td>{{number_format($com)}}</td>
+                                 <td><?php echo e(number_format($com)); ?></td>
                                 
                                
                                <?php $t += $com;?>
                             </tr>
-                            @endif
+                            <?php endif; ?>
                             
-                            @endif
-                            @endforeach
+                            <?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             
                             <tr>
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td><b>{{number_format($orderSum)}}</b></td>
-                                <td><b>{{number_format($marginSum)}}</b></td>
-                                <td><b>{{number_format($t)}}</b></td>
+                                <td><b><?php echo e(number_format($orderSum)); ?></b></td>
+                                <td><b><?php echo e(number_format($marginSum)); ?></b></td>
+                                <td><b><?php echo e(number_format($t)); ?></b></td>
                             </tr>
                             
                            
@@ -188,49 +197,51 @@
                     </thead>
                     <tbody><?php $sr = 1;$t = 0;$orderSum=0;$marginSum=0;?>
                     
-                    @foreach($employee->orders as $o)
+                    <?php $__currentLoopData = $employee->orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $o): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     
-                    @if($o->customer_id != 1 && \Carbon\Carbon::parse($o->created_at)->isToday() && ($o->paid_amount == $o->total_amount || (($o->total_amount - $o->paid_amount) < 10 )))
+                    <?php if($o->customer_id != 1 && \Carbon\Carbon::parse($o->created_at)->isToday() && ($o->paid_amount == $o->total_amount || (($o->total_amount - $o->paid_amount) < 10 ))): ?>
                     
                     
-                     @if($o->return_amount == 0 || $o->return_amount != $o->total_amount)
-                     @php
+                     <?php if($o->return_amount == 0 || $o->return_amount != $o->total_amount): ?>
+                     <?php
                         $netOrderAmt = $o->total_amount - $o->return_amount;
                         $proportion = $o->total_amount > 0 ? (max(0, $netOrderAmt) / $o->total_amount) : 1;
                         $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
                         $com = round($netMargin * ($employee->com_per_whole / 100));
-                     @endphp
+                     ?>
                             <tr>
 
-                                <td>{{$sr++}}</td>
-                                <td>{{date('d-m-Y',strtotime($o->created_at))}}</td>
+                                <td><?php echo e($sr++); ?></td>
+                                <td><?php echo e(date('d-m-Y',strtotime($o->created_at))); ?></td>
                                 
-                              <td><a href="{{route('orders.show',$o->id)}}" target="_blank">{{$o->order_no}}</a></td>
+                              <td><a href="<?php echo e(route('orders.show',$o->id)); ?>" target="_blank"><?php echo e($o->order_no); ?></a></td>
                               
-                               <td>{{number_format($netOrderAmt)}}
+                               <td><?php echo e(number_format($netOrderAmt)); ?>
+
                                <?php $orderSum += $netOrderAmt;?></td>
                                
-                               <td>{{number_format($netMargin)}}
+                               <td><?php echo e(number_format($netMargin)); ?>
+
                                <?php $marginSum += $netMargin;?></td>
-                                <td>{{number_format($com)}}</td>
+                                <td><?php echo e(number_format($com)); ?></td>
                                 
                                
                                <?php $t += $com;?>
                             </tr>
                             
-                            @endif
+                            <?php endif; ?>
                             
-                            @endif
+                            <?php endif; ?>
                             
                           
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             <tr>
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                 <td><b>{{number_format($orderSum)}}</b></td>
-                                <td><b>{{number_format($marginSum)}}</b></td>
-                                <td><b>{{number_format($t)}}</b></td>
+                                 <td><b><?php echo e(number_format($orderSum)); ?></b></td>
+                                <td><b><?php echo e(number_format($marginSum)); ?></b></td>
+                                <td><b><?php echo e(number_format($t)); ?></b></td>
                             </tr>
                     
 
@@ -261,47 +272,49 @@
                     </thead>
                     <tbody><?php $sr = 1;$t = 0;$orderSum=0;$marginSum=0;?>
                     
-                    @foreach($employee->orders as $o)
+                    <?php $__currentLoopData = $employee->orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $o): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     
-                    @if($o->customer_id != 1 && \Carbon\Carbon::parse($o->created_at)->isToday() && ($o->pay_amount < $o->total_amount || $o->paid_amount < $o->total_amount))
-                     @if($o->return_amount == 0 || $o->return_amount != $o->total_amount)
-                     @php
+                    <?php if($o->customer_id != 1 && \Carbon\Carbon::parse($o->created_at)->isToday() && ($o->pay_amount < $o->total_amount || $o->paid_amount < $o->total_amount)): ?>
+                     <?php if($o->return_amount == 0 || $o->return_amount != $o->total_amount): ?>
+                     <?php
                         $netOrderAmt = $o->total_amount - $o->return_amount;
                         $proportion = $o->total_amount > 0 ? (max(0, $netOrderAmt) / $o->total_amount) : 1;
                         $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
                         $com = round($netMargin * ($employee->com_per_whole / 100));
-                     @endphp
+                     ?>
                             <tr>
 
-                                <td>{{$sr++}}</td>
-                                <td>{{date('d-m-Y',strtotime($o->created_at))}}</td>
+                                <td><?php echo e($sr++); ?></td>
+                                <td><?php echo e(date('d-m-Y',strtotime($o->created_at))); ?></td>
                                 
-                              <td><a href="{{route('orders.show',$o->id)}}" target="_blank">{{$o->order_no}}</a></td>
+                              <td><a href="<?php echo e(route('orders.show',$o->id)); ?>" target="_blank"><?php echo e($o->order_no); ?></a></td>
                               
-                               <td>{{number_format($netOrderAmt)}}
+                               <td><?php echo e(number_format($netOrderAmt)); ?>
+
                                <?php $orderSum += $netOrderAmt;?></td>
                                
-                               <td>{{number_format($netMargin)}}
+                               <td><?php echo e(number_format($netMargin)); ?>
+
                                <?php $marginSum += $netMargin;?></td>
-                                 <td>{{number_format($com)}}</td>
+                                 <td><?php echo e(number_format($com)); ?></td>
                                 
                                
                                <?php $t += $com;?>
                             </tr>
                             
-                            @endif
+                            <?php endif; ?>
                             
-                            @endif
+                            <?php endif; ?>
                             
                           
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             <tr>
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                 <td><b>{{number_format($orderSum)}}</b></td>
-                                <td><b>{{number_format($marginSum)}}</b></td>
-                                <td><b>{{number_format($t)}}</b></td>
+                                 <td><b><?php echo e(number_format($orderSum)); ?></b></td>
+                                <td><b><?php echo e(number_format($marginSum)); ?></b></td>
+                                <td><b><?php echo e(number_format($t)); ?></b></td>
                             </tr>
                     
 
@@ -330,37 +343,39 @@
                     </thead>
                     <tbody><?php $sr = 1;$t = 0;$orderSum=0;$marginSum=0;?>
                     
-                    @foreach($returnOrders as $o)
-                    @php
+                    <?php $__currentLoopData = $returnOrders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $o): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
                         $rate = ($o->customer_id == 1) ? $employee->com_per_retail : $employee->com_per_whole;
                         $proportion = $o->total_amount > 0 ? ($o->return_amount / $o->total_amount) : 1;
                         $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
                         $com = -round($netMargin * ($rate / 100));
-                    @endphp
+                    ?>
                             <tr>
 
-                                <td>{{$sr++}}</td>
-                                <td>{{date('d-m-Y',strtotime($o->return_date ?? $o->created_at))}}</td>
+                                <td><?php echo e($sr++); ?></td>
+                                <td><?php echo e(date('d-m-Y',strtotime($o->return_date ?? $o->created_at))); ?></td>
                                 
-                              <td><a href="{{route('orders.show',$o->id)}}" target="_blank">{{$o->order_no}}</a></td>
+                              <td><a href="<?php echo e(route('orders.show',$o->id)); ?>" target="_blank"><?php echo e($o->order_no); ?></a></td>
                               
-                               <td>{{number_format(($o->total_amount ))}}
+                               <td><?php echo e(number_format(($o->total_amount ))); ?>
+
                                <?php $orderSum += ($o->total_amount);?></td>
                                 
-                               <td>{{number_format($o->return_amount)}}
+                               <td><?php echo e(number_format($o->return_amount)); ?>
+
                                <?php $marginSum += ($o->return_amount);?></td>
-                                 <td>{{$com}}</td>
+                                 <td><?php echo e($com); ?></td>
                                 
                                <?php $t += $com;?>
                             </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             <tr>
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                 <td><b>{{number_format($orderSum)}}</b></td>
-                                <td><b>{{number_format($marginSum)}}</b></td>
-                                <td><b>{{number_format($t)}}</b></td>
+                                 <td><b><?php echo e(number_format($orderSum)); ?></b></td>
+                                <td><b><?php echo e(number_format($marginSum)); ?></b></td>
+                                <td><b><?php echo e(number_format($t)); ?></b></td>
                             </tr>
                     
 
@@ -389,68 +404,68 @@
                     </tr>
                     </thead>
                     <tbody><?php $sr = 1;?>
-                    @foreach($payments as $sP)
+                    <?php $__currentLoopData = $payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sP): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
                         <tr>
 
-                            <td>{{$sr++}}</td>
-                            <td>{{date('d-m-Y',strtotime($sP->date))}}</td>
+                            <td><?php echo e($sr++); ?></td>
+                            <td><?php echo e(date('d-m-Y',strtotime($sP->date))); ?></td>
 
-                            <td>{{$sP->customer ? $sP->customer->first_name : ''}}</td>
+                            <td><?php echo e($sP->customer ? $sP->customer->first_name : ''); ?></td>
                            
-                            <td style="text-align: center;">{{number_format($sP->amount)}}</td>
+                            <td style="text-align: center;"><?php echo e(number_format($sP->amount)); ?></td>
                             <td>
-                                @if($sP->payment_method == \App\Models\CustomerPayment::CASH)
+                                <?php if($sP->payment_method == \App\Models\CustomerPayment::CASH): ?>
                                     <span class="badge rounded-pill  alert-success">
                                         CASH
                                 </span>
-                                @elseif($sP->payment_method == \App\Models\CustomerPayment::BANK_TRANSFER)
+                                <?php elseif($sP->payment_method == \App\Models\CustomerPayment::BANK_TRANSFER): ?>
                                     <span class="badge rounded-pill  alert-success">
                                         BANK TRANSFER
                                 </span>
-                                    @elseif($sP->payment_method == \App\Models\CustomerPayment::CHEQUE)
+                                    <?php elseif($sP->payment_method == \App\Models\CustomerPayment::CHEQUE): ?>
                                         <span class="badge rounded-pill  alert-success">
                                         CHEQUE
                                 </span>
-                                    @endif
+                                    <?php endif; ?>
                             </td>
-                            <td>{{$sP->createdBy ? $sP->createdBy->name : ''}}</td>
-                            <td>{{$sP->approvedBy ? $sP->approvedBy->name : ''}}</td>
+                            <td><?php echo e($sP->createdBy ? $sP->createdBy->name : ''); ?></td>
+                            <td><?php echo e($sP->approvedBy ? $sP->approvedBy->name : ''); ?></td>
                             <td>
 
-                                @if($sP->status == \App\Models\CustomerPayment::APPROVAL_PENDING)
+                                <?php if($sP->status == \App\Models\CustomerPayment::APPROVAL_PENDING): ?>
                                     <span class="badge rounded-pill  alert-danger">
                                         APPROVAL PENDING
                                 </span>
-                                @elseif($sP->status == \App\Models\CustomerPayment::APPROVED)
+                                <?php elseif($sP->status == \App\Models\CustomerPayment::APPROVED): ?>
                                     <span class="badge rounded-pill  alert-success">
                                         APPROVED
                                 </span>
-                                @endif
+                                <?php endif; ?>
                             </td>
 
 
                             <td class="text-end">
 
-                                @can('View Customer Payment')
-                                    <a href="{{route('customer-payments.show',$sP->id)}}" class="btn btn-md rounded font-sm">Detail</a>
-                                @endcan
+                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('View Customer Payment')): ?>
+                                    <a href="<?php echo e(route('customer-payments.show',$sP->id)); ?>" class="btn btn-md rounded font-sm">Detail</a>
+                                <?php endif; ?>
                                 
                                     <div class="dropdown">
                                         <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm"> <i class="material-icons md-more_horiz"></i> </a>
                                         <div class="dropdown-menu">
-                                            @can('Edit Customer Payment')
-                                                <a class="dropdown-item" href="{{route('customer-payments.edit',$sP->id)}}">Edit info</a>
-                                            @endcan
+                                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('Edit Customer Payment')): ?>
+                                                <a class="dropdown-item" href="<?php echo e(route('customer-payments.edit',$sP->id)); ?>">Edit info</a>
+                                            <?php endif; ?>
 
-                                            @can('Delete Customer Payment')
-                                                <form onsubmit="return confirm('Do you really want to do this?');" id="delete-form" action="{{ route('customer-payments.destroy',$sP->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
+                                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('Delete Customer Payment')): ?>
+                                                <form onsubmit="return confirm('Do you really want to do this?');" id="delete-form" action="<?php echo e(route('customer-payments.destroy',$sP->id)); ?>" method="POST">
+                                                    <?php echo csrf_field(); ?>
+                                                    <?php echo method_field('DELETE'); ?>
 
                                                     <button class="dropdown-item text-danger" onclick="return confirm('Are you sure?')"  type="submit">Delete</button>
                                                 </form>
-                                            @endcan
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <!-- dropdown //end -->
@@ -458,7 +473,7 @@
                             </td>
 
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                     </tbody>
                 </table>
@@ -480,9 +495,9 @@
 
 <!--  card.// -->
 
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('js')
+<?php $__env->startSection('js'); ?>
 
 <script src="https://cdn.datatables.net/buttons/1.7.0/js/dataTables.buttons.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
@@ -513,11 +528,11 @@
                 buttons: [
                     {
                         extend: 'excel',
-                        title: '{{$employee->name}} Ledger'
+                        title: '<?php echo e($employee->name); ?> Ledger'
                     },
                     {
                         extend: 'pdf',
-                        title: '{{$employee->name}} Ledger'
+                        title: '<?php echo e($employee->name); ?> Ledger'
                     },
                 ]
             });
@@ -556,10 +571,10 @@
         function generateReport() {
              
         date_range = $('#daterange-btn').val();
-        employee_id = '{{$employee->id}}';
+        employee_id = '<?php echo e($employee->id); ?>';
         
         $.ajax({
-            url: "{{route('employee.update-report')}}",
+            url: "<?php echo e(route('employee.update-report')); ?>",
             type: 'GET',
             data: {date_range: date_range,employee_id:employee_id},
             success: function (data) {
@@ -572,4 +587,6 @@
         }
     </script>
 
-    @stop
+    <?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\EjazSportsCode\ejazsports\admin\resources\views/employee/show.blade.php ENDPATH**/ ?>
