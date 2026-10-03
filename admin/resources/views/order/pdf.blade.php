@@ -85,14 +85,14 @@
         <div id="top">
             <img src="{{asset('imgs/theme/logo-new.jpg')}}" style="height:130px; width:auto">
             <div class="info">
-                <h1>Estimate</h1>
+                <h1>{{ ($order->status == 6 || $order->status == 9 || $order->return_type) ? 'Return Invoice' : 'Estimate' }}</h1>
             </div>
         </div>
         <br>
         <div>
         <div id="mid" style="text-align: right; float: right;">
             <div class="info">
-                    <p><b>Invoice # </b>{{$order->order_no}}</p>
+                    <p><b>{{ ($order->status == 6 || $order->status == 9 || $order->return_type) ? 'Return Invoice # ' : 'Invoice # ' }}</b>{{$order->order_no}}</p>
                 </div>
                 <div>
                     <p>{{date('d/m/Y h:i:s A', strtotime($order->created_at)) }}</p>

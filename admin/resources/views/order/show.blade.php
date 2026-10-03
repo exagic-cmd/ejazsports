@@ -188,7 +188,7 @@
                 <!-- col// -->
             </div>
             <div class="row">
-                <div class="col-lg-7">
+                <div class="col-lg-10">
                     <h4>Return Products</h4>
                     <div class="table-responsive">
                         <table class="table">
@@ -203,6 +203,7 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <?php $rs = 0; $rp = 0; $rw = 0; ?>
                                 @foreach($order->products as $pro)
                                     {{-- skip bundle parent rows in return list as well --}}
                                     @if(isset($pro->is_bundle) && $pro->is_bundle && ( !isset($pro->is_bundle_item) || !$pro->is_bundle_item ))
@@ -221,11 +222,24 @@
                                             <td>{{ number_format($pro->price) }}</td>
                                             <td>{{ $pro->return_qty }}</td>
                                             <td class="text-end">{{ number_format($pro->price * $pro->return_qty) }}</td>
-                                            <td>{{ number_format($pro->cost_price) }}</td>
-                                            <td>{{ number_format($pro->wholesale_price) }}</td>
+                                            <td>{{ number_format($pro->cost_price) }}<br>Total: {{ number_format($pro->cost_price * $pro->return_qty) }}</td>
+                                            <td>{{ number_format($pro->wholesale_price) }}<br>Total: {{ number_format($pro->wholesale_price * $pro->return_qty) }}</td>
                                         </tr>
+                                        <?php
+                                        $rs += ($pro->price * $pro->return_qty);
+                                        $rp += ($pro->cost_price * $pro->return_qty);
+                                        $rw += ($pro->wholesale_price * $pro->return_qty);
+                                        ?>
                                     @endif
                                 @endforeach
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th class="text-end"><b>{{ number_format($rs) }}</b></th>
+                                    <th><b>{{ number_format($rp) }}</b></th>
+                                    <th><b>{{ number_format($rw) }}</b></th>
+                                </tr>
                                 <tr>
                                     <td colspan="4">
                                         <article class="float-end">

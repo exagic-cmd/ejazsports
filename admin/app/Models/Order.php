@@ -78,6 +78,36 @@ class Order extends Model
         return $this->hasMany(OrderProduct::class)->with('product','variant');
     }
 
+    /**
+     * Margin of the items actually returned on this order.
+     * Retail (customer 1): sale - wholesale price; others: sale - purchase price.
+     */
+    public function returnedMargin() {
+        $items = OrderProduct::where('order_id', $this->id)->get();
+        $baseField = $this->customer_id == 1 ? 'wholesale_price' : 'cost_price';
+        $gross = $this->total_amount + $this->discount_amount;
+        $saleFactor = $gross > 0 ? 1 - ($this->discount_amount / $gross) : 1;
+        $margin = 0;
+
+        foreach ($items as $item) {
+            $returnQty = (float) ($item->return_qty ?? 0);
+            if ($returnQty <= 0) continue;
+
+            if ($item->is_bundle_item) {
+                // Skip the part already counted through a whole-bundle return on the parent line
+                $parent = $items->firstWhere('id', $item->parent_id);
+                if ($parent && $parent->qty > 0) {
+                    $returnQty -= $item->qty / $parent->qty * ($parent->return_qty ?? 0);
+                }
+                if ($returnQty <= 0) continue;
+            }
+
+            $margin += ($item->price * $saleFactor - ($item->{$baseField} ?? 0)) * $returnQty;
+        }
+
+        return round($margin);
+    }
+
     public function customer() {
         return $this->belongsTo(Customer::class);
     }

@@ -127,8 +127,7 @@
                     @if($o->return_amount == 0 || $o->return_amount != $o->total_amount)
                     @php
                         $netOrderAmt = $o->total_amount - $o->return_amount;
-                        $proportion = $o->total_amount > 0 ? (max(0, $netOrderAmt) / $o->total_amount) : 1;
-                        $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
+                        $netMargin = round($o->margin - $o->discount_amount - $o->returnedMargin());
                         $com = round($netMargin * ($employee->com_per_retail / 100));
                     @endphp
                             <tr>
@@ -196,8 +195,7 @@
                      @if($o->return_amount == 0 || $o->return_amount != $o->total_amount)
                      @php
                         $netOrderAmt = $o->total_amount - $o->return_amount;
-                        $proportion = $o->total_amount > 0 ? (max(0, $netOrderAmt) / $o->total_amount) : 1;
-                        $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
+                        $netMargin = round($o->margin - $o->discount_amount - $o->returnedMargin());
                         $com = round($netMargin * ($employee->com_per_whole / 100));
                      @endphp
                             <tr>
@@ -267,8 +265,7 @@
                      @if($o->return_amount == 0 || $o->return_amount != $o->total_amount)
                      @php
                         $netOrderAmt = $o->total_amount - $o->return_amount;
-                        $proportion = $o->total_amount > 0 ? (max(0, $netOrderAmt) / $o->total_amount) : 1;
-                        $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
+                        $netMargin = round($o->margin - $o->discount_amount - $o->returnedMargin());
                         $com = round($netMargin * ($employee->com_per_whole / 100));
                      @endphp
                             <tr>
@@ -333,9 +330,7 @@
                     @foreach($returnOrders as $o)
                     @php
                         $rate = ($o->customer_id == 1) ? $employee->com_per_retail : $employee->com_per_whole;
-                        $proportion = $o->total_amount > 0 ? ($o->return_amount / $o->total_amount) : 1;
-                        $netMargin = round(($o->margin - $o->discount_amount) * $proportion);
-                        $com = -round($netMargin * ($rate / 100));
+                        $com = round($o->returnedMargin() * ($rate / 100));
                     @endphp
                             <tr>
 
