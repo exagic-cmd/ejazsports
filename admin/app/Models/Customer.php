@@ -24,6 +24,7 @@ class Customer extends Model
         'gender',
         'dob',
         'address',
+        'cargo_service',
         'area_id',
         'status',
         'store_id',

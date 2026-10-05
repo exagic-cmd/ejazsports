@@ -61,7 +61,7 @@
 
     <div id="invoice-POS">
         <div id="top" style="text-align:center;">
-            <h1>{{ ($result->data->order->return_type == 2 || $result->data->order->status == 6) ? 'Return Invoice' : 'Estimate' }}
+            <h1>{{ ($result->data->order->return_type == 1 || $result->data->order->return_type == 2 || $result->data->order->status == 6 || $result->data->order->status == 9) ? 'Return Invoice' : 'Estimate' }}
             </h1>
         </div>
         <div id="mid" style="text-align:center;min-height:0px;">
@@ -69,7 +69,7 @@
                 <div>
                     <p>
                         <b>
-                            @if ($result->data->order->status == 6)
+                            @if ($result->data->order->status == 6 || $result->data->order->status == 9 || $result->data->order->return_type == 1 || $result->data->order->return_type == 2)
                                 Return Invoice #
                             @else
                                 EST #
@@ -129,7 +129,7 @@ $return_total_amount = 0;
 $return_total_quantity = 0;
 $has_sale = false;
 $has_return = false;
-$is_manual_return = ($result->data->order->return_type == 2);
+$is_manual_return = (isset($result->data->order->mannual_return) && $result->data->order->mannual_return == 1);
 $is_return_order = ($result->data->order->status == 6);
 
 // Group bundle rows by their exact parent row. Older orders may not have parent_id,
@@ -139,10 +139,15 @@ foreach ($result->data->order->products as $p) {
     if ($p->bundle_id) {
         if (isset($p->is_bundle) && $p->is_bundle == 1 && (!isset($p->is_bundle_item) || $p->is_bundle_item != 1)) {
             $current_bundle_key = 'bundle_parent_' . $p->id;
-            $bundle_groups[$current_bundle_key] = [
-                'bundle_id' => $p->bundle_id,
-                'products' => [$p],
-            ];
+            if (!isset($bundle_groups[$current_bundle_key])) {
+                $bundle_groups[$current_bundle_key] = [
+                    'bundle_id' => $p->bundle_id,
+                    'products' => [$p],
+                ];
+            } else {
+                $bundle_groups[$current_bundle_key]['bundle_id'] = $p->bundle_id;
+                array_unshift($bundle_groups[$current_bundle_key]['products'], $p);
+            }
         } else {
             $bundle_key = null;
             if (!empty($p->parent_id)) {
@@ -386,6 +391,9 @@ foreach ($result->data->order->products as $p) {
                         // For pure returns, net amount is just the return amount
                         if ($is_pure_return) {
                             $net_order_amount = -$return_total_amount;
+                        } elseif ($result->data->order->return_type == 2) {
+                            // Cash return: refund paid out in cash, customer ledger/balance is not affected
+                            $net_order_amount = max(0, $total_amount - $discount_amount);
                         } else {
                             $net_order_amount = max(0, $total_amount - $return_total_amount - $discount_amount);
                         }
@@ -397,6 +405,7 @@ foreach ($result->data->order->products as $p) {
                         }
 
                         // Fix totalRemaining: API doesn't subtract current order's paid_amount
+                        // Cash returns (return_type 2) do not affect the balance
                         $correct_remaining = $result->data->totalRemaining - ($result->data->order->paid_amount ?? 0);
                     @endphp
 
@@ -417,10 +426,10 @@ foreach ($result->data->order->products as $p) {
                     <tr style="border-bottom:2px dotted;">
                         <td></td>
                         <td class="Rate">
-                            <h2>{{ $is_pure_return ? 'Total Amount' : 'Total Amount' }}</h2>
+                            <h2>Total Amount</h2>
                         </td>
                         <td class="payment" colspan="3">
-                            <h2>Rs.{{ number_format($net_order_amount) }}</h2>
+                            <h2>{{ $net_order_amount < 0 ? '- Rs.' . number_format(abs($net_order_amount)) : 'Rs.' . number_format($net_order_amount) }}</h2>
                         </td>
                     </tr>
 
@@ -432,7 +441,7 @@ foreach ($result->data->order->products as $p) {
                                 <h2>Previous Balance</h2>
                             </td>
                             <td class="payment" colspan="3">
-                                <h2>Rs.{{ number_format($correct_previous_balance) }}</h2>
+                                <h2>{{ $correct_previous_balance < 0 ? '- Rs.' . number_format(abs($correct_previous_balance)) : 'Rs.' . number_format($correct_previous_balance) }}</h2>
                             </td>
                         </tr>
 
@@ -443,8 +452,11 @@ foreach ($result->data->order->products as $p) {
                                 <h2>Total Payable Amount</h2>
                             </td>
                             <td class="payment" colspan="3">
+                                @php
+                                    $payable = $net_order_amount + $correct_previous_balance;
+                                @endphp
                                 <h2 style="font-size:16px">
-                                    Rs.{{ number_format($net_order_amount + $correct_previous_balance) }}
+                                    {{ $payable < 0 ? '- Rs.' . number_format(abs($payable)) : 'Rs.' . number_format($payable) }}
                                 </h2>
                             </td>
                         </tr>
@@ -467,7 +479,7 @@ foreach ($result->data->order->products as $p) {
                                 <h2>Balance</h2>
                             </td>
                             <td class="payment" colspan="3">
-                                <h2>Rs.{{ number_format($correct_remaining) }}</h2>
+                                <h2>{{ $correct_remaining < 0 ? '- Rs.' . number_format(abs($correct_remaining)) : 'Rs.' . number_format($correct_remaining) }}</h2>
                             </td>
                         </tr>
 

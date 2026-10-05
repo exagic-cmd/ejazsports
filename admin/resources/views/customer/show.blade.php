@@ -66,9 +66,10 @@
             <div class="col-sm-6 col-lg-4 col-xl-3">
                 <h6>Basic</h6>
                 <p>
-                    <b>Email: </b>{{$customer->email}} <br>
-                    <b>Phone Number: </b> {{$customer->mobile_number}} <br>
-                    <b>Office Number: </b> {{$customer->office_number}} <br>
+                    <b>Email: </b>{{$customer->email ?? '-'}} <br>
+                    <b>Phone Number: </b> {{$customer->phone_number ?? $customer->mobile_number ?? '-'}} <br>
+                    <b>Area / Address: </b> {{$customer->address ?? '-'}} <br>
+                    <b>Cargo Service: </b> {{$customer->cargo_service ?? '-'}} <br>
                     <b>Opening Balance: </b> {{number_format($customer->opening_balance)}} <br>
 
                 </p>

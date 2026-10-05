@@ -70,6 +70,8 @@
                     <b>Email: </b>{{$supplier->email}} <br>
                     <b>Phone Number: </b> {{$supplier->mobile_number}} <br>
                     <b>Office Number: </b> {{$supplier->office_number}} <br>
+                    <b>Area / Address: </b> {{$supplier->address ?? '-'}} <br>
+                    <b>Cargo Service: </b> {{$supplier->cargo_service ?? '-'}} <br>
                     <b>Opening Balance: </b> {{number_format($supplier->opening_balance)}} <br>
 
                 </p>

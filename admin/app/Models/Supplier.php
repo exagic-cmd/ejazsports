@@ -21,6 +21,8 @@ class Supplier extends Model
         'name',
         'mobile_number',
         'email',
+        'address',
+        'cargo_service',
         'status',
         'ntn_number',
         'opening_balance',
