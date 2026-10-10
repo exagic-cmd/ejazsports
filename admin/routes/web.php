@@ -323,6 +323,13 @@ Route::get('/order-view/{id}','OrderController@customerOrder')->name('orders.vie
     Route::get('stock-audit-variant-scan','StockAuditController@getScanVariantDetail')->name('stock-audit.variant.scan');
     Route::get('stock-audit/status/update','StockAuditController@approveAudit')->name('stock-audit.status.update');
 
+
+    //Reminders
+    Route::resource('reminders', 'ReminderController');
+    Route::get('/reminders-check', 'ReminderController@checkReminders')->name('reminders.check');
+    Route::post('/reminders-dismiss', 'ReminderController@dismiss')->name('reminders.dismiss');
+
 });
 
 require __DIR__.'/auth.php';
+

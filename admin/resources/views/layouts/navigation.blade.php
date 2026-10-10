@@ -433,6 +433,13 @@
             </li>
             @endcanany
 
+            <li class="menu-item {{current_page('reminders') ? 'active' : '' }}">
+                <a class="menu-link" href="{{route('reminders.index')}}">
+                    <i class="icon material-icons md-notifications"></i>
+                    <span class="text">Daily Reminders</span>
+                </a>
+            </li>
+
         </ul>
         <hr />
 

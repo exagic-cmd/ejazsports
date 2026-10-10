@@ -161,5 +161,81 @@
 
 
 
+
+<!-- Reminder Modal -->
+<div class="modal fade" id="globalReminderModal" tabindex="-1" aria-labelledby="globalReminderModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="globalReminderModalLabel">Daily Reminder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="globalReminderModalBody">
+                <!-- Content injected via JS -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btnDismissReminder">Acknowledge / Dismiss</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        let currentReminderId = null;
+        let currentReminderSlot = null;
+
+        function checkReminders() {
+            $.ajax({
+                url: '{{ route("reminders.check") }}',
+                type: 'GET',
+                success: function(response) {
+                    if (response.due && response.due.length > 0) {
+                        let reminder = response.due[0]; // Show one by one
+                        currentReminderId = reminder.id;
+                        currentReminderSlot = reminder.slot;
+
+                        let html = '<h4>' + reminder.title + '</h4>';
+                        if (reminder.description) {
+                            html += '<p>' + reminder.description + '</p>';
+                        }
+                        
+                        $('#globalReminderModalBody').html(html);
+                        $('#globalReminderModal').modal('show');
+                    }
+                }
+            });
+        }
+
+        // Check on load
+        setTimeout(checkReminders, 2000);
+        // Check every 1 minute
+        setInterval(checkReminders, 60000);
+
+        $('#btnDismissReminder').click(function() {
+            if (currentReminderId && currentReminderSlot) {
+                $.ajax({
+                    url: '{{ route("reminders.dismiss") }}',
+                    type: 'POST',
+                    data: {
+                        id: currentReminderId,
+                        slot: currentReminderSlot,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        $('#globalReminderModal').modal('hide');
+                        currentReminderId = null;
+                        currentReminderSlot = null;
+                        
+                        // Check again in case there are more
+                        setTimeout(checkReminders, 1000);
+                    }
+                });
+            }
+        });
+    });
+</script>
+
 </body>
 </html>
