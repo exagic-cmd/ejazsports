@@ -32,23 +32,10 @@ class CustomerController extends Controller
     {
         $data['customers'] = Customer::orderBy('updated_at','DESC')->limit(50)->get();
 
-        $totalOrders = array();
-        $orderAmount = array();
-        $balance  = array();
-        foreach ($data['customers'] as $customer) {
-            $totalOrders[$customer->id] = Order::where('customer_id',$customer->id)->count();
-            $orderAmount[$customer->id] = Order::where('customer_id',$customer->id)->where('status','!=',6)->sum(DB::raw('total_amount - return_amount'));
-            $totalBillAmount = Order::where('customer_id',$customer->id)->where('status','!=',6)->sum('total_amount');
-            $totalReturnAmount = Order::where('customer_id',$customer->id)->where('return_type',1)->sum('return_amount');
-            
-            $totalPayment = CustomerPayment::where('customer_id',$customer->id)->where('status',2)->sum('amount');
-            $totalDiscount = CustomerPayment::where('customer_id',$customer->id)->where('status',2)->sum('discount');
-            
-            $balance[$customer->id] = (((($customer->opening_balance + $totalBillAmount) - $totalReturnAmount) - $totalPayment) - $totalDiscount);
-        }
-        $data['totalOrders'] = $totalOrders;
-        $data['orderAmount'] = $orderAmount;
-        $data['balance']  = $balance;
+        $totals = $this->calculateCustomerListTotals($data['customers']);
+        $data['totalOrders'] = $totals['totalOrders'];
+        $data['orderAmount'] = $totals['orderAmount'];
+        $data['balance'] = $totals['balance'];
 
         activity('View')->log('List of Customers');
         return view('customer.index',$data);
@@ -78,6 +65,10 @@ class CustomerController extends Controller
          //   'email' => ['required', 'string', 'max:255'],
    
             'phone_number' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'whatsapp_number' => ['nullable', 'string', 'max:255', 'required_unless:whatsapp_same_as_phone,1'],
+            'whatsapp_same_as_phone' => ['nullable', 'boolean'],
+            'city' => ['nullable', 'string', 'max:255'],
          
             'status'=> ['required','boolean']
         ]);
@@ -204,7 +195,11 @@ class CustomerController extends Controller
             'first_name' => ['required', 'string', 'max:255','unique:customers,first_name,'.$customer->id],
          //   'email' => ['required', 'string', 'max:255'],
           
-            'phone_number' => ['required', 'string', 'max:255']
+            'phone_number' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'whatsapp_number' => ['nullable', 'string', 'max:255', 'required_unless:whatsapp_same_as_phone,1'],
+            'whatsapp_same_as_phone' => ['nullable', 'boolean'],
+            'city' => ['nullable', 'string', 'max:255']
         ]);
 
 
@@ -240,23 +235,10 @@ class CustomerController extends Controller
        
         $data['customers'] = $query->get();
         
-        $totalOrders = array();
-        $orderAmount = array();
-        $balance  = array();
-        foreach ($data['customers'] as $customer) {
-            $totalOrders[$customer->id] = Order::where('customer_id',$customer->id)->count();
-            $orderAmount[$customer->id] = Order::where('customer_id',$customer->id)->where('status','!=',6)->sum(DB::raw('total_amount - return_amount'));
-            $totalBillAmount = Order::where('customer_id',$customer->id)->where('status','!=',6)->sum('total_amount');
-            $totalReturnAmount = Order::where('customer_id',$customer->id)->where('return_type',1)->sum('return_amount');
-            
-            $totalPayment = CustomerPayment::where('customer_id',$customer->id)->where('status',2)->sum('amount');
-            $totalDiscount = CustomerPayment::where('customer_id',$customer->id)->where('status',2)->sum('discount');
-            
-            $balance[$customer->id] = (((($customer->opening_balance + $totalBillAmount) - $totalReturnAmount) - $totalPayment) - $totalDiscount);
-        }
-        $data['totalOrders'] = $totalOrders;
-        $data['orderAmount'] = $orderAmount;
-        $data['balance']  = $balance;
+        $totals = $this->calculateCustomerListTotals($data['customers']);
+        $data['totalOrders'] = $totals['totalOrders'];
+        $data['orderAmount'] = $totals['orderAmount'];
+        $data['balance'] = $totals['balance'];
 
         return view('customer.search',$data);
     }
@@ -454,6 +436,50 @@ class CustomerController extends Controller
         });
 
         return response()->json($results);
+    }
+
+    /**
+     * Calculate customer list totals with grouped queries instead of issuing
+     * several database queries for every customer row.
+     */
+    private function calculateCustomerListTotals($customers)
+    {
+        $customerIds = $customers->pluck('id')->all();
+        $totalOrders = [];
+        $orderAmount = [];
+        $balance = [];
+
+        if (empty($customerIds)) {
+            return compact('totalOrders', 'orderAmount', 'balance');
+        }
+
+        $orders = Order::whereIn('customer_id', $customerIds)
+            ->groupBy('customer_id')
+            ->selectRaw('customer_id, COUNT(*) as total_orders, SUM(CASE WHEN status != 6 THEN total_amount - return_amount ELSE 0 END) as order_amount, SUM(CASE WHEN status != 6 THEN total_amount ELSE 0 END) as bill_amount, SUM(CASE WHEN return_type = 1 THEN return_amount ELSE 0 END) as return_amount')
+            ->get()
+            ->keyBy('customer_id');
+
+        $payments = CustomerPayment::whereIn('customer_id', $customerIds)
+            ->where('status', 2)
+            ->groupBy('customer_id')
+            ->selectRaw('customer_id, SUM(amount) as total_payment, SUM(discount) as total_discount')
+            ->get()
+            ->keyBy('customer_id');
+
+        foreach ($customers as $customer) {
+            $order = $orders->get($customer->id);
+            $payment = $payments->get($customer->id);
+
+            $totalOrders[$customer->id] = $order ? (int) $order->total_orders : 0;
+            $orderAmount[$customer->id] = $order ? $order->order_amount : 0;
+            $balance[$customer->id] = (($customer->opening_balance ?? 0)
+                + ($order ? $order->bill_amount : 0)
+                - ($order ? $order->return_amount : 0)
+                - ($payment ? $payment->total_payment : 0)
+                - ($payment ? $payment->total_discount : 0));
+        }
+
+        return compact('totalOrders', 'orderAmount', 'balance');
     }
 }
 

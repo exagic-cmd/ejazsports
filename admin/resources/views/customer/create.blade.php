@@ -66,6 +66,25 @@
                         </div>
 
                         <div class="mb-4">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
+                            @error('email')<div class="alert alert-danger">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="mb-2 form-check">
+                            <input type="checkbox" name="whatsapp_same_as_phone" value="1" id="whatsapp_same_as_phone" class="form-check-input" {{ old('whatsapp_same_as_phone') ? 'checked' : '' }}>
+                            <label for="whatsapp_same_as_phone" class="form-check-label">Same phone number for WhatsApp</label>
+                        </div>
+                        <div class="mb-4" id="whatsapp-number-group">
+                            <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
+                            <input type="text" name="whatsapp_number" id="whatsapp_number" class="form-control @error('whatsapp_number') is-invalid @enderror" value="{{ old('whatsapp_number') }}">
+                            @error('whatsapp_number')<div class="alert alert-danger">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="mb-4">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" name="city" id="city" class="form-control @error('city') is-invalid @enderror" value="{{ old('city') }}">
+                            @error('city')<div class="alert alert-danger">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="mb-4">
                             <label for="address" class="form-label">Area</label>
                             <input  type="text" name="address" placeholder="Type here" class="form-control @error('address') is-invalid @enderror"  value="{{ old('address') }}">
                             @error('address')
@@ -187,6 +206,14 @@
 
 @section('js')
     <script>
+        function toggleWhatsappField() {
+            const sameAsPhone = $('#whatsapp_same_as_phone').is(':checked');
+            $('#whatsapp-number-group').toggle(!sameAsPhone);
+            $('#whatsapp_number').prop('disabled', sameAsPhone);
+        }
+        $(document).on('change', '#whatsapp_same_as_phone', toggleWhatsappField);
+        $(toggleWhatsappField);
+
         var formSubmitting = false;
         var setFormSubmitting = function() { formSubmitting = true; };
 

@@ -329,6 +329,16 @@ Route::get('/order-view/{id}','OrderController@customerOrder')->name('orders.vie
     Route::get('/reminders-check', 'ReminderController@checkReminders')->name('reminders.check');
     Route::post('/reminders-dismiss', 'ReminderController@dismiss')->name('reminders.dismiss');
 
+    // Customer Daily Reminder & Recovery Lists
+    Route::resource('customer-reminder-lists', 'CustomerReminderListController');
+    Route::post('/customer-reminder-lists/{id}/reschedule', 'CustomerReminderListController@reschedule')->name('customer-reminder-lists.reschedule');
+    Route::post('/customer-reminder-lists/{id}/add-item', 'CustomerReminderListController@addItem')->name('customer-reminder-lists.add-item');
+    Route::post('/customer-reminder-lists/{listId}/items/{itemId}/email', 'CustomerReminderListController@emailReminder')->name('customer-reminder-lists.item.email');
+    Route::delete('/customer-reminder-lists/items/{itemId}', 'CustomerReminderListController@removeItem')->name('customer-reminder-lists.item.remove');
+    Route::post('/customer-reminder-lists/items/{itemId}/update', 'CustomerReminderListController@updateItem')->name('customer-reminder-lists.item.update');
+    Route::get('/customer-reminder-lists/{id}/print', 'CustomerReminderListController@printView')->name('customer-reminder-lists.print');
+    Route::get('/customer-reminder-lists/{id}/pdf', 'CustomerReminderListController@exportPdf')->name('customer-reminder-lists.pdf');
+
 });
 
 require __DIR__.'/auth.php';

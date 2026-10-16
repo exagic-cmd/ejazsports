@@ -25,15 +25,19 @@
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 
     <?php
-    function current_page($uri = "/") {
-        return strstr(request()->path(), $uri);
+    if (!function_exists('current_page')) {
+        function current_page($uri = "/") {
+            return strstr(request()->path(), $uri);
+        }
     }
 
-    function home_page() {
-        if(request()->path()=="/")
-            return true;
-        else
-            return false;
+    if (!function_exists('home_page')) {
+        function home_page() {
+            if(request()->path()=="/")
+                return true;
+            else
+                return false;
+        }
     }
     ?>
 

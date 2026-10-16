@@ -56,8 +56,10 @@
                     <tr>
                         <th>#Sr</th>
                         <th>Name</th>
-                        <!--<th scope="col">Email</th>-->
+                        <th scope="col">Email</th>
                         <th scope="col">Phone Number</th>
+                        <th scope="col">WhatsApp Number</th>
+                        <th scope="col">City</th>
                         <!--<th scope="col">Address</th>-->
                         <td>Total Orders</td>
                         <td>Order Amount</td>
@@ -73,8 +75,10 @@
 
                             <td>{{$sr++}}</td>
                             <td><b>{{$customer->first_name}} {{$customer->last_name}}</b></td>
-                            <!--<td>{{$customer->email}}</td>-->
+                            <td>{{$customer->email ?: '-'}}</td>
                             <td>{{$customer->phone_number}}</td>
+                            <td>{{$customer->whatsapp_same_as_phone ? $customer->phone_number : ($customer->whatsapp_number ?: '-')}}</td>
+                            <td>{{$customer->city ?: '-'}}</td>
                             <td>{{$totalOrders[$customer->id]}}</td>
                             <td>{{number_format($orderAmount[$customer->id])}}</td>
                             <!--<td>{{$customer->address}} {{$customer->area ? $customer->area->name : ''}}</td>-->

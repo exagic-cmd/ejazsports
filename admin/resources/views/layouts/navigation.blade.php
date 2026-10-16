@@ -149,13 +149,15 @@
             </li>
             @endcan
 
-            @can('Manage Reminder')
-            <li class="menu-item has-submenu {{current_page('follow-up') ? 'active' : '' }}">
+            @canany(['Manage Reminder', 'Manage Customer Reminders'])
+            <li class="menu-item has-submenu {{ request()->routeIs('customer-reminder-lists.*') || current_page('follow-up') ? 'active' : '' }}">
                 <a class="menu-link">
-                    <i class="icon material-icons md-house"></i>
+                    <i class="icon material-icons md-notifications_active"></i>
                     <span class="text">Customer Reminders</span>
                 </a>
                 <div class="submenu">
+                    <a href="{{route('customer-reminder-lists.index')}}" class="{{ request()->routeIs('customer-reminder-lists.index') || request()->routeIs('customer-reminder-lists.show') ? 'active' : '' }}">Daily Recovery Lists</a>
+                    <a href="{{route('customer-reminder-lists.create')}}" class="{{ request()->routeIs('customer-reminder-lists.create') ? 'active' : '' }}">Create Daily List</a>
 
                     <a href="{{route('followup.auto')}}" class="{{current_page('/auto') ? 'active' : '' }}">Last 15 Days
                         Auto</a>
@@ -170,7 +172,7 @@
                         class="{{current_page('/complete') ? 'active' : '' }}">Complete </a>
                 </div>
             </li>
-            @endcan
+            @endcanany
 
             @canany(['List Purchase Order','Create Purchase Order'])
             <li

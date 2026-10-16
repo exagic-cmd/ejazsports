@@ -21,6 +21,8 @@ class Customer extends Model
         'last_name',
         'email',
         'phone_number',
+        'whatsapp_number',
+        'whatsapp_same_as_phone',
         'gender',
         'dob',
         'address',
@@ -66,6 +68,16 @@ class Customer extends Model
     public function payments() {
         return $this->hasMany(CustomerPayment::class,'customer_id');
     }
+
+    public function getRemainingBalanceAttribute()
+    {
+        $totalBillAmount = Order::where('customer_id', $this->id)->where('status', '!=', 6)->sum('total_amount');
+        $totalReturnAmount = Order::where('customer_id', $this->id)->where('return_type', 1)->sum('return_amount');
+        $totalPayment = CustomerPayment::where('customer_id', $this->id)->where('status', 2)->sum('amount');
+        $totalDiscount = CustomerPayment::where('customer_id', $this->id)->where('status', 2)->sum('discount');
+
+        return round(((($this->opening_balance + $totalBillAmount) - $totalReturnAmount) - $totalPayment) - $totalDiscount, 2);
+    }
     
     public function storeCustomer($request) {
 
@@ -77,7 +89,10 @@ class Customer extends Model
             $customer->first_name = $request->first_name;
             // $customer->last_name = $request->last_name;
             $customer->phone_number = $request->phone_number;
-            // $customer->email = $request->email;
+            $customer->whatsapp_same_as_phone = $request->boolean('whatsapp_same_as_phone');
+            $customer->whatsapp_number = $customer->whatsapp_same_as_phone ? $request->phone_number : $request->whatsapp_number;
+            $customer->email = $request->email;
+            $customer->city = $request->city;
             $customer->address = $request->address;
             $customer->cargo_service = $request->cargo_service;
             $customer->status = $request->status;
@@ -107,7 +122,10 @@ class Customer extends Model
             $customer->first_name = $request->first_name;
             // $customer->last_name = $request->last_name;
             $customer->phone_number = $request->phone_number;
-            // $customer->email = $request->email;
+            $customer->whatsapp_same_as_phone = $request->boolean('whatsapp_same_as_phone');
+            $customer->whatsapp_number = $customer->whatsapp_same_as_phone ? $request->phone_number : $request->whatsapp_number;
+            $customer->email = $request->email;
+            $customer->city = $request->city;
             $customer->address = $request->address;
             $customer->cargo_service = $request->cargo_service;
             $customer->status = $request->status;
