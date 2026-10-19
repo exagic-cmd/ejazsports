@@ -338,6 +338,7 @@ Route::get('/order-view/{id}','OrderController@customerOrder')->name('orders.vie
     Route::post('/customer-reminder-lists/items/{itemId}/update', 'CustomerReminderListController@updateItem')->name('customer-reminder-lists.item.update');
     Route::get('/customer-reminder-lists/{id}/print', 'CustomerReminderListController@printView')->name('customer-reminder-lists.print');
     Route::get('/customer-reminder-lists/{id}/pdf', 'CustomerReminderListController@exportPdf')->name('customer-reminder-lists.pdf');
+    Route::get('/customer-reminder-lists/{listId}/items/{itemId}/pdf', 'CustomerReminderListController@downloadCustomerPdf')->name('customer-reminder-lists.item.pdf');
 
 });
 

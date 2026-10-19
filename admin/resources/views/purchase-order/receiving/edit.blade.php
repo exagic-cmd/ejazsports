@@ -240,9 +240,85 @@
             <hr>
             <div class="col-lg-12">
                 <div class="card mb-4">
-                    <div class="card-header">
-                        <h4>Products</h4>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Products</h4>
                     </div>
+
+                    @php
+                        $groupedProducts = $receiving->products->groupBy('product_id');
+                    @endphp
+
+                    {{-- Quick Batch Pricing by Product --}}
+                    <div class="card-body border-bottom bg-light py-3 px-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="mb-0 text-primary">
+                                <i class="material-icons md-flash_on" style="vertical-align: middle; font-size: 18px;"></i>
+                                Batch Pricing by Product
+                            </h6>
+                            <small class="text-muted">Enter prices once per product to apply across all its variants</small>
+                        </div>
+
+                        @foreach($groupedProducts as $proId => $proItems)
+                            @php
+                                $firstItem = $proItems->first();
+                                $proTitle = $firstItem->product ? $firstItem->product->title : 'Product #'.$proId;
+                                $variantCount = $proItems->count();
+
+                                $defaultTradePrice = '';
+                                if ($firstItem->trade_price > 0) {
+                                    $defaultTradePrice = $firstItem->trade_price;
+                                } elseif (isset($lPrice[$firstItem->id]) && $lPrice[$firstItem->id] > 0) {
+                                    $defaultTradePrice = $lPrice[$firstItem->id];
+                                } elseif ($firstItem->variant && $firstItem->variant->purchase_price > 0) {
+                                    $defaultTradePrice = $firstItem->variant->purchase_price;
+                                } elseif ($firstItem->product && $firstItem->product->purchase_price > 0) {
+                                    $defaultTradePrice = $firstItem->product->purchase_price;
+                                }
+
+                                $defaultSalePrice = '';
+                                if ($firstItem->sale_price > 0) {
+                                    $defaultSalePrice = $firstItem->sale_price;
+                                } elseif ($firstItem->variant && $firstItem->variant->additional_price > 0) {
+                                    $defaultSalePrice = $firstItem->variant->additional_price;
+                                } elseif ($firstItem->product && $firstItem->product->price > 0) {
+                                    $defaultSalePrice = $firstItem->product->price;
+                                }
+
+                                $defaultDzPrice = '';
+                                if ($firstItem->dz_price > 0) {
+                                    $defaultDzPrice = $firstItem->dz_price;
+                                } elseif ($firstItem->variant && $firstItem->variant->dz_price > 0) {
+                                    $defaultDzPrice = $firstItem->variant->dz_price;
+                                } elseif ($firstItem->product && $firstItem->product->dz_price > 0) {
+                                    $defaultDzPrice = $firstItem->product->dz_price;
+                                }
+                            @endphp
+                            <div class="row align-items-center py-2 border-top">
+                                <div class="col-lg-3 col-md-12 mb-1">
+                                    <strong class="font-sm text-dark">{{ $proTitle }}</strong>
+                                    <div><span class="badge rounded-pill alert-info font-xs">{{ $variantCount }} variant{{ $variantCount > 1 ? 's' : '' }}</span></div>
+                                </div>
+                                <div class="col-lg-2 col-md-3 col-6 mb-1">
+                                    <label class="form-label font-xs mb-1">Purchase Price</label>
+                                    <input type="number" step="any" class="form-control form-control-sm" id="batch_t_price_{{ $proId }}" placeholder="P. Price" value="{{ $defaultTradePrice > 0 ? $defaultTradePrice : '' }}">
+                                </div>
+                                <div class="col-lg-2 col-md-3 col-6 mb-1">
+                                    <label class="form-label font-xs mb-1">Wholesale Price</label>
+                                    <input type="number" step="any" class="form-control form-control-sm" id="batch_r_price_{{ $proId }}" placeholder="W. Price" value="{{ $defaultSalePrice > 0 ? $defaultSalePrice : '' }}">
+                                </div>
+                                <div class="col-lg-2 col-md-3 col-6 mb-1">
+                                    <label class="form-label font-xs mb-1">Dz Price</label>
+                                    <input type="number" step="any" class="form-control form-control-sm" id="batch_dz_price_{{ $proId }}" placeholder="Dz Price" value="{{ $defaultDzPrice > 0 ? $defaultDzPrice : '' }}">
+                                </div>
+                                <div class="col-lg-3 col-md-3 col-6 mb-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-sm btn-primary w-100" onclick="applyBatchPrice({{ $proId }})">
+                                        ⚡ Apply to {{ $variantCount }} Variants
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
                     <div class="col-lg-12" id="productDiv">
                         <div class="table-responsive" >
                             <table id="myTable" class="table table-hover">
@@ -270,10 +346,18 @@
                                 </thead>
                                 <tbody><?php $sr = 1;?>
                                 @foreach($receiving->products as $p)
-                                    <tr id="r{{$p->id}}" >
+                                    <tr id="r{{$p->id}}" data-product-id="{{$p->product_id}}" data-row-id="{{$p->id}}">
                                         <td>{{$sr++}}</td>
 
-                                        <td><b>{{$p->product->title}}</b></td>
+                                        <td>
+                                            <b>{{$p->product->title}}</b>
+                                            <br>
+                                            <button type="button" class="btn btn-xs btn-outline-primary py-0 px-1 font-xs mt-1" 
+                                                    title="Copy this row's prices to all other variants of this product" 
+                                                    onclick="copyRowToAllVariants({{$p->id}}, {{$p->product_id}})">
+                                                ⤓ Copy to all
+                                            </button>
+                                        </td>
 
                                         <td>{{$p->variant ? $p->variant->shade : ''}}</td>
                                         <td>{{$p->variant ? $p->variant->size : ''}}</td>
@@ -306,9 +390,9 @@
 
                                         <td><input type="number" @class('form-control net-price') name="total_net_price[]"  id="total_net_price{{$p->id}}" value="{{ ($p->trade_price - $p->discount + $p->gst ) * $p->qty }}"> </td>
 
-                                        <td><input type="number" @class('form-control ') name="retail_price[]"   value="{{$p->sale_price}}"> </td>
+                                        <td><input type="number" @class('form-control') name="retail_price[]" id="retail_price{{$p->id}}" value="{{$p->sale_price}}"> </td>
 
-                                        <td><input type="number" @class('form-control ') name="dz_price[]"   value="{{$p->dz_price}}"> </td>
+                                        <td><input type="number" @class('form-control') name="dz_price[]" id="dz_price{{$p->id}}" value="{{$p->dz_price}}"> </td>
 
                                         <input type="hidden" value="{{$p->product_variant_id}}" name="variant_ids[]">
                                         <input type="hidden" value="{{$p->product_id}}" name="product_ids[]">
@@ -377,7 +461,7 @@
 
 
     </script>
-    <script src="{{asset('js/po.js?v=1.2')}}" type="text/javascript"></script>
+    <script src="{{asset('js/po.js?v=1.3')}}" type="text/javascript"></script>
 
 @stop
 

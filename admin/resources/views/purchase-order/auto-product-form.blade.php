@@ -178,11 +178,10 @@
                                                 <td>{{ $v->available_stock ?? $p->available_stock }}</td>
                                                 <td>
                                                     <input type="number" class="form-control" name="p_qty[]" value="0" min="0">
+                                                    <input type="hidden" value="{{ $v->id ?? 0 }}" name="variant_ids[]">
+                                                    <input type="hidden" value="{{ $p->id }}" name="product_ids[]">
+                                                    <input type="hidden" value="0" name="p_tps[]">
                                                 </td>
-
-                                                <input type="hidden" value="{{ $v->id ?? 0 }}" name="variant_ids[]">
-                                                <input type="hidden" value="{{ $p->id }}" name="product_ids[]">
-                                                <input type="hidden" value="0" name="p_tps[]">
                                             </tr>
                                         @endforeach
                                     @else
@@ -195,11 +194,10 @@
                                             <td>{{ $p->available_stock }}</td>
                                             <td>
                                                 <input type="number" class="form-control" name="p_qty[]" value="0" min="0">
+                                                <input type="hidden" value="0" name="variant_ids[]">
+                                                <input type="hidden" value="{{ $p->id }}" name="product_ids[]">
+                                                <input type="hidden" value="0" name="p_tps[]">
                                             </td>
-
-                                            <input type="hidden" value="0" name="variant_ids[]">
-                                            <input type="hidden" value="{{ $p->id }}" name="product_ids[]">
-                                            <input type="hidden" value="0" name="p_tps[]">
                                         </tr>
                                     @endif
                                 @endforeach
@@ -226,24 +224,22 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-    // Prepare data arrays before submit
+    let table;
     let formSubmitting = false;
-    function setFormSubmitting () {
-        const pQty = $("input[name='p_qty[]']").map(function(){ return $(this).val(); }).get();
-        const variantIds = $("input[name='variant_ids[]']").map(function(){ return $(this).val(); }).get();
-        const productIds = $("input[name='product_ids[]']").map(function(){ return $(this).val(); }).get();
-        const pTps = $("input[name='p_tps[]']").map(function(){ return $(this).val(); }).get();
 
+    function setFormSubmitting () {
+        const $rows = table ? table.$('tr', { search: 'none' }) : $('tbody tr');
         const sQty = [], sVId = [], sProId = [], sPT = [];
-        for (let i = 0; i < pQty.length; i++) {
-            const qty = parseInt(pQty[i] || 0, 10);
+
+        $rows.each(function () {
+            const qty = parseInt($(this).find("input[name='p_qty[]']").val() || 0, 10);
             if (qty > 0) {
                 sQty.push(qty);
-                sVId.push(parseInt(variantIds[i] || 0, 10));
-                sProId.push(parseInt(productIds[i] || 0, 10));
-                sPT.push(parseFloat(pTps[i] || 0));
+                sVId.push(parseInt($(this).find("input[name='variant_ids[]']").val() || 0, 10));
+                sProId.push(parseInt($(this).find("input[name='product_ids[]']").val() || 0, 10));
+                sPT.push(parseFloat($(this).find("input[name='p_tps[]']").val() || 0));
             }
-        }
+        });
 
         $('[name="s_p_qty[]"]').val(sQty);
         $('[name="s_variant_ids[]"]').val(sVId);
@@ -283,7 +279,7 @@
         });
 
         // Init DataTable
-        const table = $('#myTable').DataTable({
+        table = $('#myTable').DataTable({
             ordering: false,
             paging: true,
             info: false,

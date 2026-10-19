@@ -22,7 +22,7 @@
 @section('content')
 
 <div class="content-header">
-    <a href="javascript:history.back()"><i class="material-icons md-arrow_back"></i> Go back </a>
+    <a href="{{ route('customers.index') }}"><i class="material-icons md-arrow_back"></i> Go back to Customers</a>
 </div>
 <div class="card mb-4">
     <div class="card-header bg-brand-2" style="height: 150px"></div>
@@ -42,7 +42,11 @@
             </div>
             <!--  col.// -->
             <div class="col-xl-4 text-md-end">
-            
+                @can('Edit Customer')
+                    <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-primary rounded font-sm">
+                        <i class="material-icons md-edit"></i> Edit Customer
+                    </a>
+                @endcan
 
                 @can('Delete Customer')
                 <form @class('d-inline') onsubmit="return confirm('Do you really want to do this?');" id="delete-form" action="{{ route('customers.destroy',$customer->id) }}" method="POST">

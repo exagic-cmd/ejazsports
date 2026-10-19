@@ -60,6 +60,28 @@ class Customer extends Model
     public function area() {
         return $this->belongsTo(Area::class);
     }
+
+    /** Return the customer's WhatsApp contact in wa.me international format. */
+    public function getWhatsappInternationalNumberAttribute()
+    {
+        $number = $this->whatsapp_same_as_phone
+            ? $this->phone_number
+            : ($this->whatsapp_number ?: $this->phone_number);
+        $digits = preg_replace('/\\D+/', '', (string) $number);
+
+        if (substr($digits, 0, 2) === '00') {
+            $digits = substr($digits, 2);
+        }
+
+        // Customer phone numbers are entered locally in Pakistan (e.g. 0312... or 312...).
+        if (substr($digits, 0, 1) === '0') {
+            $digits = '92' . substr($digits, 1);
+        } elseif (strlen($digits) === 10 && substr($digits, 0, 1) === '3') {
+            $digits = '92' . $digits;
+        }
+
+        return $digits;
+    }
     
     public function orders() {
         return $this->hasMany(Order::class);

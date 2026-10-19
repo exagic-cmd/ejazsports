@@ -53,49 +53,48 @@ function updateDiff(id) {
 
 function updateTradePrice(id) {
     
-    rQtyId = '#r_qty' + id;
-    tTPId = '#total_t_price' + id;
-    tNPId = '#total_net_price' + id;
-    tDId = '#discount' + id;
-    tGSTId = '#gst' + id;
-    tPId = '#t_price' + id;
+    var rQtyId = '#r_qty' + id;
+    var tTPId = '#total_t_price' + id;
+    var tNPId = '#total_net_price' + id;
+    var tDId = '#discount' + id;
+    var tGSTId = '#gst' + id;
+    var tPId = '#t_price' + id;
 
-    receivedQty = parseInt($(rQtyId).val());
-    if(receivedQty) {
-        tPrice = parseFloat($(tPId).val());
-        if(tPrice >= 0) {
-            $(tTPId).val(receivedQty * tPrice);
-        }
-    }
+    var receivedQty = parseInt($(rQtyId).val()) || 0;
+    var tPrice = parseFloat($(tPId).val()) || 0;
+    var discount = parseFloat($(tDId).val()) || 0;
+    var gst = parseFloat($(tGSTId).val()) || 0;
 
-
-
-    $(tNPId).val((tPrice * receivedQty) - parseFloat($(tDId).val()) + parseFloat($(tGSTId).val()));
+    $(tTPId).val(receivedQty * tPrice);
+    $(tNPId).val((tPrice * receivedQty) - discount + gst);
 
     updateGrandTotal();
 }
 
 function updateNetPrice(id) {
 
-    rQtyId = '#r_qty' + id;
-    tTPId = '#total_t_price' + id;
-    tNPId = '#total_net_price' + id;
-    tDId = '#discount' + id;
-    dPId = '#discount_p' + id;
-    tGSTId = '#gst' + id;
-    tPId = '#t_price' + id;
+    var rQtyId = '#r_qty' + id;
+    var tTPId = '#total_t_price' + id;
+    var tNPId = '#total_net_price' + id;
+    var tDId = '#discount' + id;
+    var dPId = '#discount_p' + id;
+    var tGSTId = '#gst' + id;
+    var tPId = '#t_price' + id;
 
-    receivedQty = parseInt($(rQtyId).val());
-    if(receivedQty) {
-        totalTPrice = parseFloat($(tTPId).val());
-        if(totalTPrice >= 0) {
-            $(tPId).val( Math.round(totalTPrice / receivedQty , 1));
-        }
+    var receivedQty = parseInt($(rQtyId).val()) || 0;
+    var totalTPrice = parseFloat($(tTPId).val()) || 0;
+    var discount = parseFloat($(tDId).val()) || 0;
+    var gst = parseFloat($(tGSTId).val()) || 0;
+
+    if(receivedQty > 0) {
+        $(tPId).val(Math.round(totalTPrice / receivedQty, 1));
     }
 
-    $(dPId).val(Math.round( ( ( ($(tDId).val() ) * 100) / (totalTPrice)  ),1) );
+    if(totalTPrice > 0) {
+        $(dPId).val(Math.round(((discount * 100) / totalTPrice), 1));
+    }
 
-    $(tNPId).val(totalTPrice - parseFloat($(tDId).val()) + parseFloat($(tGSTId).val()));
+    $(tNPId).val(totalTPrice - discount + gst);
 
     updateGrandTotal();
 
@@ -107,28 +106,28 @@ function updateGrandTotal() {
     var i;var trade = 0;
     var inputs = $(".total-trade-price");
     for (i = 0; i < x.length; i++) {
-        trade += parseInt($(inputs[i]).val());
+        trade += parseFloat($(inputs[i]).val()) || 0;
     }
 
     var x = document.getElementsByClassName("total-discount");
     var i;var discount = 0;
     var inputs = $(".total-discount");
     for (i = 0; i < x.length; i++) {
-        discount += parseInt($(inputs[i]).val());
+        discount += parseFloat($(inputs[i]).val()) || 0;
     }
 
     var x = document.getElementsByClassName("total-gst");
     var i;var tax = 0;
     var inputs = $(".total-gst");
     for (i = 0; i < x.length; i++) {
-        tax += parseInt($(inputs[i]).val());
+        tax += parseFloat($(inputs[i]).val()) || 0;
     }
     
     var x = document.getElementsByClassName("qty");
     var i;var qty = 0;
     var inputs = $(".qty");
     for (i = 0; i < x.length; i++) {
-        qty += parseInt($(inputs[i]).val());
+        qty += parseFloat($(inputs[i]).val()) || 0;
     }
     
     $('#total_qty').val(qty);
@@ -137,7 +136,7 @@ function updateGrandTotal() {
     $('#g_discount').val(discount);
     $('#g_tax').val(tax);
     
-    packing_charges = parseInt($('#packing_charges').val());
+    var packing_charges = parseFloat($('#packing_charges').val()) || 0;
     $('#net_amount').val(trade - discount + tax + packing_charges);
 }
 
@@ -230,5 +229,108 @@ function addQuantity(id) {
     $('#total_qty').val(sum);
     $('#total_products').val(qty);
 
+}
 
+function applyBatchPrice(productId) {
+    var tPriceVal = $('#batch_t_price_' + productId).val();
+    var rPriceVal = $('#batch_r_price_' + productId).val();
+    var dzPriceVal = $('#batch_dz_price_' + productId).val();
+
+    var hasTPrice = tPriceVal !== '' && !isNaN(parseFloat(tPriceVal));
+    var hasRPrice = rPriceVal !== '' && !isNaN(parseFloat(rPriceVal));
+    var hasDzPrice = dzPriceVal !== '' && !isNaN(parseFloat(dzPriceVal));
+
+    if (!hasTPrice && !hasRPrice && !hasDzPrice) {
+        alert('Please enter at least one price (Purchase, Wholesale, or Dz Price) to apply.');
+        return;
+    }
+
+    var tPrice = hasTPrice ? parseFloat(tPriceVal) : null;
+    var rPrice = hasRPrice ? parseFloat(rPriceVal) : null;
+    var dzPrice = hasDzPrice ? parseFloat(dzPriceVal) : null;
+
+    var updatedCount = 0;
+    $('tr[data-product-id="' + productId + '"]').each(function () {
+        var rowId = $(this).data('row-id');
+
+        if (tPrice !== null) {
+            $('#t_price' + rowId).val(tPrice);
+            updateTradePrice(rowId);
+        }
+        if (rPrice !== null) {
+            $('#retail_price' + rowId).val(rPrice);
+        }
+        if (dzPrice !== null) {
+            $('#dz_price' + rowId).val(dzPrice);
+        }
+
+        var $tr = $(this);
+        $tr.css('transition', 'background-color 0.4s ease');
+        $tr.css('background-color', '#d4edda');
+        setTimeout(function () {
+            $tr.css('background-color', '');
+        }, 1200);
+
+        updatedCount++;
+    });
+
+    updateGrandTotal();
+
+    if (typeof toastr !== 'undefined') {
+        toastr.success('Applied prices to ' + updatedCount + ' variants successfully!');
+    }
+}
+
+function copyRowToAllVariants(rowId, productId) {
+    var tPriceVal = $('#t_price' + rowId).val();
+    var rPriceVal = $('#retail_price' + rowId).val();
+    var dzPriceVal = $('#dz_price' + rowId).val();
+
+    var hasTPrice = tPriceVal !== '' && !isNaN(parseFloat(tPriceVal));
+    var hasRPrice = rPriceVal !== '' && !isNaN(parseFloat(rPriceVal));
+    var hasDzPrice = dzPriceVal !== '' && !isNaN(parseFloat(dzPriceVal));
+
+    if (!hasTPrice && !hasRPrice && !hasDzPrice) {
+        alert('Please enter at least one price in this row first.');
+        return;
+    }
+
+    var tPrice = hasTPrice ? parseFloat(tPriceVal) : null;
+    var rPrice = hasRPrice ? parseFloat(rPriceVal) : null;
+    var dzPrice = hasDzPrice ? parseFloat(dzPriceVal) : null;
+
+    if (tPrice !== null) $('#batch_t_price_' + productId).val(tPrice);
+    if (rPrice !== null) $('#batch_r_price_' + productId).val(rPrice);
+    if (dzPrice !== null) $('#batch_dz_price_' + productId).val(dzPrice);
+
+    var updatedCount = 0;
+    $('tr[data-product-id="' + productId + '"]').each(function () {
+        var targetRowId = $(this).data('row-id');
+
+        if (tPrice !== null) {
+            $('#t_price' + targetRowId).val(tPrice);
+            updateTradePrice(targetRowId);
+        }
+        if (rPrice !== null) {
+            $('#retail_price' + targetRowId).val(rPrice);
+        }
+        if (dzPrice !== null) {
+            $('#dz_price' + targetRowId).val(dzPrice);
+        }
+
+        var $tr = $(this);
+        $tr.css('transition', 'background-color 0.4s ease');
+        $tr.css('background-color', '#d4edda');
+        setTimeout(function () {
+            $tr.css('background-color', '');
+        }, 1200);
+
+        updatedCount++;
+    });
+
+    updateGrandTotal();
+
+    if (typeof toastr !== 'undefined') {
+        toastr.success('Copied prices to all ' + updatedCount + ' variants of this product!');
+    }
 }

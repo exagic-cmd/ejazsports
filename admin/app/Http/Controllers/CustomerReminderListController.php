@@ -440,6 +440,22 @@ class CustomerReminderListController extends Controller
         return $pdf->stream($fileName);
     }
 
+    /** Download a PDF containing only one customer's reminder details. */
+    public function downloadCustomerPdf($listId, $itemId)
+    {
+        $item = CustomerReminderListItem::with(['customer', 'reminderList'])
+            ->where('reminder_list_id', $listId)
+            ->findOrFail($itemId);
+        $customer = $item->customer;
+
+        $pdf = PDF::loadView('customer_reminder_lists.customer_pdf', compact('item', 'customer'));
+        $pdf->setPaper('A4', 'portrait');
+
+        $customerName = $customer ? $customer->first_name : 'customer';
+        $fileName = (Str::slug($customerName . '-reminder-' . $item->reminderList->reminder_date) ?: 'customer-reminder') . '.pdf';
+        return $pdf->download($fileName);
+    }
+
     /**
      * Helper to group items by Area or single collection.
      */

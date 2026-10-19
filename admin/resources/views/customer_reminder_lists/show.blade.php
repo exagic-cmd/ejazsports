@@ -20,9 +20,6 @@
         <a href="{{ route('customer-reminder-lists.pdf', [$list->id, 'sort_by' => $sortBy]) }}" target="_blank" rel="noopener" class="btn btn-light rounded font-sm">
             <i class="material-icons md-picture_as_pdf"></i> PDF
         </a>
-        <button type="button" class="btn btn-success-light rounded font-sm" id="btnShareWhatsApp" title="Opens WhatsApp with this recovery list's text ready to share">
-            <i class="material-icons md-share"></i> WhatsApp
-        </button>
         <button type="button" class="btn btn-light rounded font-sm" data-bs-toggle="modal" data-bs-target="#rescheduleModal">
             <i class="material-icons md-calendar_today"></i> Change Date
         </button>
@@ -142,9 +139,28 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($cust && $cust->phone_number)
-                                        {{ $cust->phone_number }}
-                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $cust->whatsapp_number ?: $cust->phone_number) }}" target="_blank" class="text-success ms-1" title="WhatsApp Customer">
+                                    @php
+                                        $whatsappNumber = $cust ? $cust->whatsapp_international_number : null;
+                                        $messageLines = $cust ? [
+                                            'Ejaz Sports - Customer Payment Reminder',
+                                            'Customer: ' . trim($cust->first_name . ' ' . $cust->last_name),
+                                            'Reminder list: ' . $list->title,
+                                            'Reminder date: ' . \Carbon\Carbon::parse($list->reminder_date)->format('d M Y'),
+                                            'Reminder status: ' . $item->status_label,
+                                            'Balance on this list: Rs. ' . number_format($item->snapshot_balance, 2),
+                                            'Current outstanding balance: Rs. ' . number_format($cust->remaining_balance, 2),
+                                            'City: ' . ($cust->city ?: 'Not provided'),
+                                            'Phone: ' . ($cust->phone_number ?: 'Not provided'),
+                                            'Email: ' . ($cust->email ?: 'Not provided'),
+                                            $item->remarks ? 'Customer note: ' . $item->remarks : null,
+                                            $list->notes ? 'List instructions: ' . $list->notes : null,
+                                            'Please contact us if you have already paid or have any questions.',
+                                        ] : [];
+                                        $whatsappMessage = implode("\n", array_filter($messageLines, function ($line) { return $line !== null && $line !== ''; }));
+                                    @endphp
+                                    @if($cust && $whatsappNumber)
+                                        {{ $cust->phone_number ?: $whatsappNumber }}
+                                        <a href="https://wa.me/{{ $whatsappNumber }}?text={{ rawurlencode($whatsappMessage) }}" target="_blank" rel="noopener" class="text-success ms-1" title="Open this customer's personalized reminder in WhatsApp">
                                             <i class="material-icons md-chat font-xs"></i>
                                         </a>
                                     @else
@@ -183,6 +199,9 @@
                                     </form>
                                 </td>
                                 <td class="text-end">
+                                    <a href="{{ route('customer-reminder-lists.item.pdf', [$list->id, $item->id]) }}" class="btn btn-sm btn-light text-danger rounded" title="Download this customer's reminder PDF">
+                                        <i class="material-icons md-picture_as_pdf"></i>
+                                    </a>
                                     @if($cust && $cust->email)
                                         <form action="{{ route('customer-reminder-lists.item.email', [$list->id, $item->id]) }}" method="POST" class="d-inline">
                                             @csrf
@@ -333,33 +352,11 @@
     </div>
 </div>
 
-<!-- Formatted text for sharing -->
-<textarea id="hiddenShareText" style="display:none;">*{{ $list->title }}*
-Date: {{ \Carbon\Carbon::parse($list->reminder_date)->format('d M Y') }}
-Total Recovery: Rs. {{ number_format($totalBalance, 2) }}
----------------------------------
-@php $idx = 1; @endphp
-@foreach($groupedItems as $grp => $grpList)
-[{{ $grp }}]
-@foreach($grpList as $it)
-{{ $idx++ }}. {{ $it->customer ? $it->customer->first_name : 'Customer' }} | Bal: Rs. {{ number_format($it->snapshot_balance, 0) }} | Ph: {{ $it->customer ? $it->customer->phone_number : 'N/A' }}
-@endforeach
-
-@endforeach
----------------------------------
-Ejaz Sports ERP</textarea>
 @endsection
 
 @section('scripts')
 <script>
 $(document).ready(function() {
-    $('#btnShareWhatsApp').on('click', function() {
-        let text = $('#hiddenShareText').val();
-        let encodedText = encodeURIComponent(text);
-        let url = 'https://api.whatsapp.com/send?text=' + encodedText;
-        window.open(url, '_blank');
-    });
-
     if ($.fn.select2) {
         $('#modalCustomerSelect').select2({
             dropdownParent: $('#addCustomerModal')
