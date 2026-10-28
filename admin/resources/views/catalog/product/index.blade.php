@@ -81,6 +81,18 @@
                                     @if($product->have_variants)
                                         <small class="right-0"> <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{count($product->variants)}}</b> (variants)</small>
                                         @endif
+                                    @if(!empty($product->extra_com_status))
+                                        <div class="mt-1">
+                                            <span class="badge bg-success text-white" style="font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px;" title="Extra Commission (Product Bonus)">
+                                                &#9733; Bonus: 
+                                                @if((float)$product->extra_com_retail == (float)$product->extra_com_whole)
+                                                    {{ $product->extra_com_type == 2 ? (float)$product->extra_com_retail . '%' : 'Rs ' . number_format((float)$product->extra_com_retail) }}
+                                                @else
+                                                    R: {{ $product->extra_com_type == 2 ? (float)$product->extra_com_retail . '%' : 'Rs ' . number_format((float)$product->extra_com_retail) }} | W: {{ $product->extra_com_type == 2 ? (float)$product->extra_com_whole . '%' : 'Rs ' . number_format((float)$product->extra_com_whole) }}
+                                                @endif
+                                            </span>
+                                        </div>
+                                    @endif
                                 </div>
                             </a>
                         </div>

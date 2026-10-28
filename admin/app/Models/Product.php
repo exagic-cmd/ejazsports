@@ -42,7 +42,11 @@ class Product extends Model
         'purchase_price',
         'dz_price',
         'barcode',
-        'is_featured'
+        'is_featured',
+        'extra_com_status',
+        'extra_com_type',
+        'extra_com_retail',
+        'extra_com_whole'
     ];
     protected $dates = ['deleted_at'];
 
@@ -120,6 +124,12 @@ class Product extends Model
             $product->price = $request->price;
             $product->purchase_price = $request->purchase_price;
             $product->dz_price = $request->dz_price;
+            if ($request->has('extra_com_type')) {
+                $product->extra_com_status = $request->has('extra_com_status') ? 1 : 0;
+                $product->extra_com_type = $request->extra_com_type;
+                $product->extra_com_retail = $request->extra_com_retail ?? 0;
+                $product->extra_com_whole = $request->extra_com_whole ?? 0;
+            }
             $product->discount_amount = 0;
             $product->is_product_discount = false;
             $product->is_brand_discount = false;
@@ -244,6 +254,12 @@ class Product extends Model
             $product->price = $request->price;
             $product->purchase_price = $request->purchase_price;
             $product->dz_price = $request->dz_price;
+            if ($request->has('extra_com_type')) {
+                $product->extra_com_status = $request->has('extra_com_status') ? 1 : 0;
+                $product->extra_com_type = $request->extra_com_type;
+                $product->extra_com_retail = $request->extra_com_retail ?? 0;
+                $product->extra_com_whole = $request->extra_com_whole ?? 0;
+            }
             $product->status = $request->status ? $request->status : 0;
             $product->serial_no = $request->serial_no;
             $product->re_order_level = $request->re_order_level;
@@ -378,7 +394,9 @@ class Product extends Model
             //manage product variants
             $count = 1;
             if($request->barcode) {
-                 ProductVariant::where('product_id',$product->id)->whereNotIn('id',$request->variant_id)->delete();
+                 $removedVariantIds = ProductVariant::where('product_id',$product->id)->whereNotIn('id',$request->variant_id)->pluck('id');
+                 ProductVariant::whereIn('id',$removedVariantIds)->delete();
+                 BundleVariant::removeDeleted($product->id, $removedVariantIds);
                 for($i =0;$i < count($request->barcode); $i++) {
 
                     if($request->variant_id[$i] != 0)

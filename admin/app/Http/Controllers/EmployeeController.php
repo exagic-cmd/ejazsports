@@ -76,12 +76,39 @@ class EmployeeController extends Controller
      */
     public function show(Employee $employee)
     {
-        $payments = CustomerPayment::where('date',Carbon::today())->get();
-        
-        $returnOrders = Order::whereDate('return_date',Carbon::today())->where('employee_id',$employee->id)->get();
+        // Only today's orders for this employee, excluding fully returned ones
+        $todayOrders = $employee->orders()
+            ->whereDate('created_at', Carbon::today())
+            ->where(function ($q) {
+                $q->where('return_amount', 0)
+                  ->orWhereColumn('return_amount', '!=', 'total_amount');
+            })
+            ->get();
 
-        activity('View')->log(' Show the detail of [ <b>' . $employee->name. ' </b> ] Employee');
-        return view('employee.show',compact('employee','payments','returnOrders'));
+        $retailOrders = $todayOrders->where('customer_id', 1);
+
+        $wholeOrders = $todayOrders->filter(fn ($o) =>
+            $o->customer_id != 1 &&
+            ($o->paid_amount == $o->total_amount || ($o->total_amount - $o->paid_amount) < 10)
+        );
+
+        $creditOrders = $todayOrders->filter(fn ($o) =>
+            $o->customer_id != 1 && $o->paid_amount < $o->total_amount
+        );
+
+        $payments = CustomerPayment::with(['customer', 'createdBy', 'approvedBy'])
+            ->whereDate('date', Carbon::today())
+            ->get();
+
+        $returnOrders = Order::whereDate('return_date', Carbon::today())
+            ->where('employee_id', $employee->id)
+            ->get();
+
+        activity('View')->log(' Show the detail of [ <b>' . $employee->name . ' </b> ] Employee');
+
+        return view('employee.show', compact(
+            'employee', 'retailOrders', 'wholeOrders', 'creditOrders', 'payments', 'returnOrders'
+        ));
     }
 
     /**

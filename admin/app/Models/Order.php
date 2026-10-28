@@ -108,6 +108,32 @@ class Order extends Model
         return round($margin);
     }
 
+    /**
+     * Extra commission (product bonus) saved on this order's lines at sale time.
+     */
+    public function extraCommission() {
+        return round(OrderProduct::where('order_id', $this->id)->sum('extra_commission'), 2);
+    }
+
+    /**
+     * Product bonus of the items actually returned on this order.
+     * Bundle returns already add return_qty to each bundle item, and the bundle line itself has no bonus.
+     */
+    public function returnedExtraCommission() {
+        $items = OrderProduct::where('order_id', $this->id)
+            ->where('extra_commission', '>', 0)
+            ->where('return_qty', '>', 0)
+            ->get(['qty', 'return_qty', 'extra_commission']);
+        $bonus = 0;
+
+        foreach ($items as $item) {
+            if ($item->qty <= 0) continue;
+            $bonus += $item->extra_commission / $item->qty * min($item->return_qty, $item->qty);
+        }
+
+        return round($bonus, 2);
+    }
+
     public function customer() {
         return $this->belongsTo(Customer::class);
     }

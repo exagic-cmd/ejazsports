@@ -100,7 +100,10 @@ class ProductController extends Controller
             'brand_id' => ['required'],
             'category_id' => ['required', 'array', 'min:1'],
             're_order_level' => ['required'],
-            'price' => ['required']
+            'price' => ['required'],
+            'extra_com_type' => ['nullable', 'in:1,2'],
+            'extra_com_retail' => ['nullable', 'numeric', 'min:0', $request->extra_com_type == 2 ? 'max:100' : 'max:99999999'],
+            'extra_com_whole' => ['nullable', 'numeric', 'min:0', $request->extra_com_type == 2 ? 'max:100' : 'max:99999999'],
         ]);
 
         $product = $this->product->store($request);
@@ -290,7 +293,10 @@ class ProductController extends Controller
             'brand_id' => ['required'],
             'category_id' => ['required', 'array', 'min:1'],
             're_order_level' => ['required'],
-            'price' => ['required']
+            'price' => ['required'],
+            'extra_com_type' => ['nullable', 'in:1,2'],
+            'extra_com_retail' => ['nullable', 'numeric', 'min:0', $request->extra_com_type == 2 ? 'max:100' : 'max:99999999'],
+            'extra_com_whole' => ['nullable', 'numeric', 'min:0', $request->extra_com_type == 2 ? 'max:100' : 'max:99999999'],
         ]);
 
         $product = $this->product->updateProduct($request, $product);
@@ -308,6 +314,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+        BundleVariant::removeDeleted($product->id);
 
         activity('Delete')->log('<b> ' . $product->title . '</b>  Product is deleted');
         return redirect()->route('products.index')

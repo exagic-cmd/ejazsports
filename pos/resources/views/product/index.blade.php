@@ -58,6 +58,16 @@
                                                     <div class="product-name"  title="{{$pro->title}}">
                                                          {{strlen($pro->title) > 40 ? substr($pro->title, 0, 40) . '...' : $pro->title}}<br>
                                                         <span style=" color: #db324d;"> {{$v->shade ? $v->shade : ''}}  {{$v->size ? ' , '.$v->size : ''}} </span>
+                                                        @if(!empty($pro->extra_com_status))
+                                                            <br><span style="display:inline-block;background:#1f8f4e;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600;" title="Extra Commission (Product Bonus)">
+                                                                &#9733; Bonus: 
+                                                                @if((float)$pro->extra_com_retail == (float)$pro->extra_com_whole)
+                                                                    {{ $pro->extra_com_type == 2 ? (float)$pro->extra_com_retail . '%' : 'Rs ' . (float)$pro->extra_com_retail }}
+                                                                @else
+                                                                    R: {{ $pro->extra_com_type == 2 ? (float)$pro->extra_com_retail . '%' : 'Rs ' . (float)$pro->extra_com_retail }} | W: {{ $pro->extra_com_type == 2 ? (float)$pro->extra_com_whole . '%' : 'Rs ' . (float)$pro->extra_com_whole }}
+                                                                @endif
+                                                            </span>
+                                                        @endif
                                                     </div>
 
                                                    
@@ -100,6 +110,16 @@
 
                                                     <div class="product-name"  title="{{$pro->title}}">
                                                          {{strlen($pro->title) > 40 ? substr($pro->title, 0, 40) . '...' : $pro->title}}<br>
+                                                        @if(!empty($pro->extra_com_status))
+                                                            <span style="display:inline-block;background:#1f8f4e;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600;" title="Extra Commission (Product Bonus)">
+                                                                &#9733; Bonus: 
+                                                                @if((float)$pro->extra_com_retail == (float)$pro->extra_com_whole)
+                                                                    {{ $pro->extra_com_type == 2 ? (float)$pro->extra_com_retail . '%' : 'Rs ' . (float)$pro->extra_com_retail }}
+                                                                @else
+                                                                    R: {{ $pro->extra_com_type == 2 ? (float)$pro->extra_com_retail . '%' : 'Rs ' . (float)$pro->extra_com_retail }} | W: {{ $pro->extra_com_type == 2 ? (float)$pro->extra_com_whole . '%' : 'Rs ' . (float)$pro->extra_com_whole }}
+                                                                @endif
+                                                            </span>
+                                                        @endif
                                                
                                                     </div>
 

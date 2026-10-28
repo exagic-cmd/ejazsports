@@ -11,10 +11,12 @@
                         <th scope="col">Order Amt.</th>
                         <th scope="col">whole Sale Margin</th>
                         <th scope="col">Com</th>
+                        <th scope="col">Product Bonus</th>
+                        <th scope="col">Total Com</th>
 
                     </tr>
                     </thead>
-                    <tbody><?php $sr = 1;$t = 0;$orderSum=0;$marginSum=0;?>
+                    <tbody><?php $sr = 1;$t = 0;$b = 0;$orderSum=0;$marginSum=0;?>
                     @foreach($orders as $o)
                     
                     @if($o->customer_id == 1)
@@ -23,6 +25,7 @@
                         $netOrderAmt = $o->total_amount - $o->return_amount;
                         $netMargin = round($o->margin - $o->discount_amount - $o->returnedMargin());
                         $com = round($netMargin * ($employee->com_per_retail / 100));
+                        $bonus = round($o->extraCommission() - $o->returnedExtraCommission());
                     @endphp
                             <tr>
 
@@ -36,6 +39,8 @@
                                 <td>{{number_format($netMargin)}}
                                 <?php $marginSum += $netMargin;?></td>
                                   <td>{{number_format($com)}}</td>
+                                  <td>{{number_format($bonus)}}<?php $b += $bonus;?></td>
+                                  <td>{{number_format($com + $bonus)}}</td>
                                  
                                 
                                 <?php $t += $com;?>
@@ -51,6 +56,8 @@
                                 <td><b>{{number_format($orderSum)}}</b></td>
                                 <td><b>{{number_format($marginSum)}}</b></td>
                                 <td><b>{{number_format($t)}}</b></td>
+                                <td><b>{{number_format($b)}}</b></td>
+                                <td><b>{{number_format($t + $b)}}</b></td>
                             </tr>
                             
                            
@@ -74,10 +81,12 @@
                         <th scope="col">Order Amt.</th>
                         <th scope="col">Retail Margin</th>
                         <th scope="col">Com</th>
+                        <th scope="col">Product Bonus</th>
+                        <th scope="col">Total Com</th>
 
                     </tr>
                     </thead>
-                    <tbody><?php $sr = 1;$t = 0;$orderSum=0;$marginSum=0;?>
+                    <tbody><?php $sr = 1;$t = 0;$b = 0;$orderSum=0;$marginSum=0;?>
                     
                     @foreach($orders as $o)
                     
@@ -87,6 +96,7 @@
                         $netOrderAmt = $o->total_amount - $o->return_amount;
                         $netMargin = round($o->margin - $o->discount_amount - $o->returnedMargin());
                         $com = round($netMargin * ($employee->com_per_whole / 100));
+                        $bonus = round($o->extraCommission() - $o->returnedExtraCommission());
                     @endphp
                             <tr>
 
@@ -101,6 +111,8 @@
                                <td>{{number_format($netMargin)}}
                                <?php $marginSum += $netMargin;?></td>
                                  <td>{{number_format($com)}}</td>
+                                 <td>{{number_format($bonus)}}<?php $b += $bonus;?></td>
+                                 <td>{{number_format($com + $bonus)}}</td>
                                 
                                
                                <?php $t += $com;?>
@@ -115,6 +127,8 @@
                                 <td><b>{{number_format($orderSum)}}</b></td>
                                 <td><b>{{number_format($marginSum)}}</b></td>
                                 <td><b>{{number_format($t)}}</b></td>
+                                <td><b>{{number_format($b)}}</b></td>
+                                <td><b>{{number_format($t + $b)}}</b></td>
                             </tr>
                     
 
@@ -137,10 +151,12 @@
                         <th scope="col">Order Amt.</th>
                         <th scope="col">Purchase - Whole Margin</th>
                         <th scope="col">Com</th>
+                        <th scope="col">Product Bonus</th>
+                        <th scope="col">Total Com</th>
 
                     </tr>
                     </thead>
-                    <tbody><?php $sr = 1;$t = 0;$orderSum=0;$marginSum=0;?>
+                    <tbody><?php $sr = 1;$t = 0;$b = 0;$orderSum=0;$marginSum=0;?>
                     
                     @foreach($orders as $o)
                     
@@ -150,6 +166,7 @@
                         $netOrderAmt = $o->total_amount - $o->return_amount;
                         $netMargin = round($o->margin - $o->discount_amount - $o->returnedMargin());
                         $com = round($netMargin * ($employee->com_per_whole / 100));
+                        $bonus = round($o->extraCommission() - $o->returnedExtraCommission());
                      @endphp
                             <tr>
 
@@ -164,6 +181,8 @@
                                <td>{{number_format($netMargin)}}
                                <?php $marginSum += $netMargin;?></td>
                                  <td>{{number_format($com)}}</td>
+                                 <td>{{number_format($bonus)}}<?php $b += $bonus;?></td>
+                                 <td>{{number_format($com + $bonus)}}</td>
                                 
                                
                                <?php $t += $com;?>
@@ -182,6 +201,8 @@
                                  <td><b>{{number_format($orderSum)}}</b></td>
                                 <td><b>{{number_format($marginSum)}}</b></td>
                                 <td><b>{{number_format($t)}}</b></td>
+                                <td><b>{{number_format($b)}}</b></td>
+                                <td><b>{{number_format($t + $b)}}</b></td>
                             </tr>
                     
 
@@ -203,15 +224,18 @@
                         <th scope="col">Order Amt.</th>
                         <th scope="col">Return Amt.</th>
                         <th scope="col">Com</th>
+                        <th scope="col">Product Bonus</th>
+                        <th scope="col">Total Com</th>
 
                     </tr>
                     </thead>
-                    <tbody><?php $sr = 1;$t = 0;$orderSum=0;$marginSum=0;?>
+                    <tbody><?php $sr = 1;$t = 0;$b = 0;$orderSum=0;$marginSum=0;?>
                     
                     @foreach($returnOrders as $o)
                     @php
                         $rate = ($o->customer_id == 1) ? $employee->com_per_retail : $employee->com_per_whole;
                         $com = round($o->returnedMargin() * ($rate / 100));
+                        $bonus = round($o->returnedExtraCommission());
                     @endphp
                             <tr>
 
@@ -226,6 +250,8 @@
                                <td>{{number_format($o->return_amount)}}
                                <?php $marginSum += ($o->return_amount);?></td>
                                 <td>{{$com}}</td>
+                                <td>{{number_format($bonus)}}<?php $b += $bonus;?></td>
+                                <td>{{number_format($com + $bonus)}}</td>
                                 
                                
                                <?php $t += $com;?>
@@ -238,6 +264,8 @@
                                  <td><b>{{number_format($orderSum)}}</b></td>
                                 <td><b>{{number_format($marginSum)}}</b></td>
                                 <td><b>{{number_format($t)}}</b></td>
+                                <td><b>{{number_format($b)}}</b></td>
+                                <td><b>{{number_format($t + $b)}}</b></td>
                             </tr>
                     
 

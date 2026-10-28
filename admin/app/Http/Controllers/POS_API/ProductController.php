@@ -23,7 +23,7 @@ class ProductController extends BaseController
         $data['menuBrands'] = Brand::where([['status',true],['show_in_menu',true]])->select('id','title')->orderby('serial_no','ASC')->limit(6)->get();
 
         //get top 50 features products
-        $data['featuredProducts'] = Product::with('brand','variants','thumbnail')->where('status',true)->select('id', 'title', 'price', 'brand_id', 'is_new','discount_amount','discount_status','have_variants','available_stock')->limit(100)->orderBy('id','DESC')->get();
+        $data['featuredProducts'] = Product::with('brand','variants','thumbnail')->where('status',true)->select('id', 'title', 'price', 'brand_id', 'is_new','discount_amount','discount_status','have_variants','available_stock','extra_com_status','extra_com_type','extra_com_retail','extra_com_whole')->limit(100)->orderBy('id','DESC')->get();
 
         $data['allProducts'] = Product::with('variants')->select('id','title','have_variants')
 ->get();

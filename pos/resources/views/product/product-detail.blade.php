@@ -26,6 +26,20 @@
                     <div class="control-group"><label for="email" ><b>Discounted Price : </b>{{$result->data->product->discount_status ? number_format($result->data->product->price - $result->data->product->discount_amount) : number_format($result->data->product->price)}}</label>
 
                         <!----></div>
+                    <div class="control-group"><label><b>Extra Bonus : </b>
+                        @if(!empty($result->data->product->extra_com_status))
+                            <span style="display:inline-block;background:#1f8f4e;color:#fff;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:600;">
+                                &#9733; 
+                                @if((float)$result->data->product->extra_com_retail == (float)$result->data->product->extra_com_whole)
+                                    {{ $result->data->product->extra_com_type == 2 ? (float)$result->data->product->extra_com_retail . '%' : 'Rs ' . (float)$result->data->product->extra_com_retail }}
+                                @else
+                                    Retail: {{ $result->data->product->extra_com_type == 2 ? (float)$result->data->product->extra_com_retail . '%' : 'Rs ' . (float)$result->data->product->extra_com_retail }} | Wholesale: {{ $result->data->product->extra_com_type == 2 ? (float)$result->data->product->extra_com_whole . '%' : 'Rs ' . (float)$result->data->product->extra_com_whole }}
+                                @endif
+                            </span>
+                        @else
+                            <span class="text-muted">None</span>
+                        @endif
+                    </label></div>
 
                     <div class="control-group"><label for="email" ><b>Variation </b></label>
                         <table id="table1" class="table table-bordered">

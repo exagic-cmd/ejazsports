@@ -24,7 +24,8 @@ class OrderProduct extends Model
         'bundle_id',
         'parent_id',
         'is_bundle',
-        'is_bundle_item'
+        'is_bundle_item',
+        'extra_commission'
     ];
 
     public function product()

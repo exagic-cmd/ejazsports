@@ -78,6 +78,31 @@ class POSController extends BaseController
         return $calculatedPrice;
     }
 
+    /**
+     * Extra commission (product bonus) earned by the salesman on one sale line.
+     * Type 1 = fixed Rs per piece, type 2 = % of the line margin
+     * (retail: sale - wholesale price; others: sale - purchase price, same as the order margin).
+     */
+    private function calculateExtraCommission($product, $line, $isRetail)
+    {
+        if (!$product->extra_com_status) {
+            return 0;
+        }
+
+        $value = (float) ($isRetail ? $product->extra_com_retail : $product->extra_com_whole);
+        if ($value <= 0) {
+            return 0;
+        }
+
+        if ($product->extra_com_type == 1) {
+            return round($value * $line->qty, 2);
+        }
+
+        $base = $isRetail ? $line->wholesale_price : $line->cost_price;
+        $margin = max(0, ($line->price - ($base ?? 0)) * $line->qty);
+        return round($margin * $value / 100, 2);
+    }
+
     public function getPOSModuleData(Request $request)
     {
         $data['categories'] = Category::select('id', 'title')->get();
@@ -226,7 +251,7 @@ class POSController extends BaseController
                             }
                         ])->wherehas('variants', function ($query) use ($variantId) {
                             $query->where('id', $variantId);
-                        })->select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price')->first();
+                        })->select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')->first();
 
                         if ($temp && $temp->variants->isNotEmpty()) {
                             $variants[$variantId] = $temp->variants[0];
@@ -234,7 +259,7 @@ class POSController extends BaseController
                             $variants[$variantId] = null;
                         }
                     } else {
-                        $temp = Product::where('id', $productId)->select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price')->first();
+                        $temp = Product::where('id', $productId)->select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')->first();
                         $variants[$variantId] = null;
                     }
 
@@ -316,7 +341,7 @@ class POSController extends BaseController
                                 'variants' => function ($query) {
                                     $query->with([
                                         'product' => function ($q) {
-                                            $q->select('id', 'title', 'price', 'purchase_price', 'dz_price');
+                                            $q->select('id', 'title', 'price', 'purchase_price', 'dz_price', 'extra_com_status');
                                         },
                                         'variant' => function ($q) {
                                             $q->select('id', 'product_id', 'additional_price', 'purchase_price');
@@ -327,6 +352,9 @@ class POSController extends BaseController
                             ->first();
 
                         if ($bundleData) {
+                            $bundleData->has_extra_com = $bundleData->variants->contains(function ($v) {
+                                return $v->product && $v->product->extra_com_status;
+                            });
                             $bundles[$bundleId] = $bundleData;
 
                             // Calculate bundle price
@@ -823,10 +851,10 @@ class POSController extends BaseController
                             ->whereHas('variants', function ($query) use ($variantId) {
                                 $query->where('id', $variantId);
                             })
-                            ->select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'available_stock')
+                            ->select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')
                             ->firstOrFail();
                     } else {
-                        $product = Product::select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'available_stock')
+                        $product = Product::select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')
                             ->findOrFail($productId);
                     }
 
@@ -913,6 +941,7 @@ class POSController extends BaseController
                         }
                     }
 
+                    $orderProduct->extra_commission = $this->calculateExtraCommission($product, $orderProduct, $order->customer_id == 1);
                     $orderProduct->save();
                     $totalAmount += $calculatedPrice * $cart['qty'];
                     $totalProducts++;
@@ -930,7 +959,7 @@ class POSController extends BaseController
                         'variants' => function ($query) {
                             $query->with([
                                 'product' => function ($q) {
-                                    $q->select('id', 'title', 'price', 'purchase_price', 'dz_price', 'available_stock');
+                                    $q->select('id', 'title', 'price', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole');
                                 },
                                 'variant' => function ($q) {
                                     $q->select('id', 'product_id', 'additional_price', 'purchase_price', 'barcode', 'available_stock');
@@ -991,9 +1020,9 @@ class POSController extends BaseController
                                     }
                                 ])->whereHas('variants', function ($query) use ($variantId) {
                                     $query->where('id', $variantId);
-                                })->select('title', 'price', 'id', 'purchase_price', 'dz_price', 'available_stock')->firstOrFail();
+                                })->select('title', 'price', 'id', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')->firstOrFail();
                             } else {
-                                $componentProduct = Product::select('title', 'price', 'id', 'purchase_price', 'dz_price', 'available_stock')->findOrFail($bundleVariant->product_id);
+                                $componentProduct = Product::select('title', 'price', 'id', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')->findOrFail($bundleVariant->product_id);
                             }
                         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
                             Log::warning('Bundle component product not found, skipping', ['bundle_id' => $bundleData->id, 'product_id' => $bundleVariant->product_id, 'variant_id' => $variantId]);
@@ -1056,6 +1085,7 @@ class POSController extends BaseController
                                 break;
                         }
 
+                        $component->extra_commission = $this->calculateExtraCommission($componentProduct, $component, $order->customer_id == 1);
                         $component->save();
                         Log::info('Bundle component saved (product-like flow)', [
                             'order_id' => $order->id,
@@ -1192,10 +1222,10 @@ class POSController extends BaseController
                     if ($variantId) {
                         $product = Product::with(['variants' => fn($q) => $q->where('id', $variantId)])
                             ->whereHas('variants', fn($q) => $q->where('id', $variantId))
-                            ->select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'available_stock')
+                            ->select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')
                             ->firstOrFail();
                     } else {
-                        $product = Product::select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'available_stock')
+                        $product = Product::select('title', 'price', 'id', 'discount_status', 'discount_amount', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')
                             ->findOrFail($productId);
                     }
 
@@ -1212,6 +1242,7 @@ class POSController extends BaseController
                     $orderProduct->wholesale_price = $variantId ? ($product->variants[0]->additional_price ?? 0) : ($product->price ?? 0);
                     $orderProduct->returned = true;
                     $orderProduct->return_qty = $returnQty;
+                    $orderProduct->extra_commission = $this->calculateExtraCommission($product, $orderProduct, $order->customer_id == 1);
                     $orderProduct->save();
 
                     $totalAmount += $calculatedPrice * $returnQty;
@@ -1326,7 +1357,7 @@ class POSController extends BaseController
                         'variants' => function ($query) {
                             $query->with([
                                 'product' => function ($q) {
-                                    $q->select('id', 'title', 'price', 'purchase_price', 'dz_price', 'available_stock');
+                                    $q->select('id', 'title', 'price', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole');
                                 },
                                 'variant' => function ($q) {
                                     $q->select('id', 'product_id', 'additional_price', 'purchase_price', 'barcode', 'available_stock', 'online_available_stock');
@@ -1370,9 +1401,9 @@ class POSController extends BaseController
                                 }
                             ])->whereHas('variants', function ($query) use ($variantId) {
                                 $query->where('id', $variantId);
-                            })->select('title', 'price', 'id', 'purchase_price', 'dz_price', 'available_stock')->firstOrFail();
+                            })->select('title', 'price', 'id', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')->firstOrFail();
                         } else {
-                            $componentProduct = Product::select('title', 'price', 'id', 'purchase_price', 'dz_price', 'available_stock')
+                            $componentProduct = Product::select('title', 'price', 'id', 'purchase_price', 'dz_price', 'available_stock', 'extra_com_status', 'extra_com_type', 'extra_com_retail', 'extra_com_whole')
                                 ->findOrFail($bundleVariant->product_id);
                         }
 
@@ -1393,6 +1424,7 @@ class POSController extends BaseController
                         $component->barcode = $variantId ? ($componentProduct->variants[0]->barcode ?? null) : null;
                         $component->returned = true;
                         $component->return_qty = $componentQty;
+                        $component->extra_commission = $this->calculateExtraCommission($componentProduct, $component, $order->customer_id == 1);
                         $component->save();
 
                         if ($request->get('adjust_type') == 1) {

@@ -150,6 +150,16 @@
                             Un Published
                         @endif
                     </span>
+                    @if(!empty($product->extra_com_status))
+                        <span class="badge rounded-pill bg-success text-white ms-1" style="font-size: 12px; padding: 5px 10px;" title="Extra Commission (Product Bonus)">
+                            &#9733; Extra Bonus: 
+                            @if((float)$product->extra_com_retail == (float)$product->extra_com_whole)
+                                {{ $product->extra_com_type == 2 ? (float)$product->extra_com_retail . '%' : 'Rs ' . number_format((float)$product->extra_com_retail) }}
+                            @else
+                                Retail: {{ $product->extra_com_type == 2 ? (float)$product->extra_com_retail . '%' : 'Rs ' . number_format((float)$product->extra_com_retail) }} | Wholesale: {{ $product->extra_com_type == 2 ? (float)$product->extra_com_whole . '%' : 'Rs ' . number_format((float)$product->extra_com_whole) }}
+                            @endif
+                        </span>
+                    @endif
 
                     <br>
                     <small class="text-muted">Last Updated: {{ date('M d,Y', strtotime($product->updated_at)) }}</small>
@@ -203,7 +213,21 @@
                                 <br>
                                 <b>Reordering-level : </b>{{ $product->re_order_level }}<br>
 
-                                <b>Barcode : </b>{{ $product->barcode }}
+                                <b>Barcode : </b>{{ $product->barcode }} <br>
+                                <b>Extra Bonus : </b>
+                                @if(!empty($product->extra_com_status))
+                                    <span class="badge rounded-pill bg-success text-white" style="font-size: 11px;">
+                                        &#9733; Active
+                                        ({{ $product->extra_com_type == 2 ? '% of Margin' : 'Fixed Rs' }} - 
+                                        @if((float)$product->extra_com_retail == (float)$product->extra_com_whole)
+                                            {{ $product->extra_com_type == 2 ? (float)$product->extra_com_retail . '%' : 'Rs ' . number_format((float)$product->extra_com_retail) }}
+                                        @else
+                                            R: {{ $product->extra_com_type == 2 ? (float)$product->extra_com_retail . '%' : 'Rs ' . number_format((float)$product->extra_com_retail) }} | W: {{ $product->extra_com_type == 2 ? (float)$product->extra_com_whole . '%' : 'Rs ' . number_format((float)$product->extra_com_whole) }}
+                                        @endif)
+                                    </span>
+                                @else
+                                    <span class="text-muted">Disabled</span>
+                                @endif
                             </p>
 
                         </div>
@@ -224,6 +248,13 @@
                                     <b>Purchase Price : </b> {{ $product->purchase_price }} <br>
 
                                     <b>Dz Price : </b> {{ $product->dz_price }} <br>
+                                    @if(!empty($product->extra_com_status))
+                                        <hr class="my-1">
+                                        <b>Extra Bonus (Salesman):</b><br>
+                                        <small class="d-block">&bull; <b>Type:</b> {{ $product->extra_com_type == 2 ? '% of product margin' : 'Fixed Rs per piece' }}</small>
+                                        <small class="d-block">&bull; <b>Retail Bonus:</b> {{ $product->extra_com_type == 2 ? (float)$product->extra_com_retail . '%' : 'Rs ' . number_format((float)$product->extra_com_retail) }}</small>
+                                        <small class="d-block">&bull; <b>Wholesale Bonus:</b> {{ $product->extra_com_type == 2 ? (float)$product->extra_com_whole . '%' : 'Rs ' . number_format((float)$product->extra_com_whole) }}</small>
+                                    @endif
                                 </p>
 
                             </div>

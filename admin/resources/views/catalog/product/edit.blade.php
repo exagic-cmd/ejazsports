@@ -119,6 +119,7 @@
                                                 <input type="text" name="code" id="product_code" class="form-control @error('code') is-invalid @enderror" value="{{ $product->code }}" placeholder="Type here">
                                                 <button type="button" class="btn btn-outline-secondary" id="btn-generate-sku">Auto Generate SKU</button>
                                             </div>
+                                            @error('code')
                                             <div class="alert alert-danger">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -395,6 +396,11 @@
                                         </div>
                                         <!-- col.// -->
                                     </div>
+
+                                    @can('Manage Pricing')
+                                    <hr>
+                                    @include('catalog.product.partials.extra-commission')
+                                    @endcan
 
                                     <br>
                                     <button class="btn btn-primary" type="button" onclick="updateDiv('image')">Continue to next</button>

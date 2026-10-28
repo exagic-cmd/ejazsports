@@ -174,6 +174,12 @@
                                             <!-- col.// -->
                                         </div>
                                         <!-- row.// -->
+
+                                        @can('Manage Pricing')
+                                        <hr>
+                                        @include('catalog.product.partials.extra-commission', ['product' => null])
+                                        @endcan
+
                                         <br>
                                         <button class="btn btn-primary" type="button" onclick="updateDiv('variant')">Continue to next</button>
 

@@ -49,6 +49,22 @@
                                                     <br>
                                                     <small>{{ $variant->size }} - {{ $variant->shade }}</small>
                                                 @endif
+                                                @if (!empty($product->extra_com_status))
+                                                    @php
+                                                        $bonusText = function ($v) use ($product) {
+                                                            return $product->extra_com_type == 2 ? (float) $v . '%' : 'Rs ' . (float) $v;
+                                                        };
+                                                    @endphp
+                                                    <br>
+                                                    <span style="display:inline-block;background:#1f8f4e;color:#fff;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:600;" title="Extra commission for the salesman">
+                                                        &#9733; Bonus
+                                                        @if ((float) $product->extra_com_retail == (float) $product->extra_com_whole)
+                                                            {{ $bonusText($product->extra_com_retail) }}
+                                                        @else
+                                                            R {{ $bonusText($product->extra_com_retail) }} / W {{ $bonusText($product->extra_com_whole) }}
+                                                        @endif
+                                                    </span>
+                                                @endif
                                             </div>
                                             <div class="product-qty">
                                                 <span>
@@ -115,6 +131,9 @@
                                         <div class="cart-product-content">
                                             <div class="product-name">
                                                 {{ $bundleData->name }}
+                                                @if (!empty($bundleData->has_extra_com))
+                                                    <span style="display:inline-block;background:#1f8f4e;color:#fff;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:600;" title="This bundle has a product with extra commission">&#9733; Bonus</span>
+                                                @endif
                                                 @if (!empty($bundleData->short_desc))
                                                     <br>
                                                     <small>{{ $bundleData->short_desc }}</small>
