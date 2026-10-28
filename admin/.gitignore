@@ -17,3 +17,5 @@ vegas-admin.zip
 vendor.zip
 .env.zip
 bootstrap.zip
+
+/database/migrations/
