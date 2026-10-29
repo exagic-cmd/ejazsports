@@ -668,9 +668,10 @@ b {
   -webkit-box-shadow: none;
           box-shadow: none;
   outline: 0;
-  width: 34px;
+  min-width: 34px;
   height: 34px;
   display: block;
+  white-space: nowrap;
   border-radius: 4px;
   background: #e9ecee;
   line-height: 34px;

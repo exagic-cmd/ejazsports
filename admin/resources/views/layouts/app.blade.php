@@ -13,7 +13,7 @@
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="{{asset('imgs/theme/favicon.svg')}}" />
     <!-- Template CSS -->
-    <link href="{{asset('css/main.css?v=1.0.1')}}" rel="stylesheet" type="text/css" />
+    <link href="{{asset('css/main.css?v=1.0.2')}}" rel="stylesheet" type="text/css" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <link href="//cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />

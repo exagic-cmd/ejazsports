@@ -26,54 +26,43 @@
 </div>
 
 <header class="card card-body mb-4">
-    <div class="row gx-3">
-        <div class="col-lg-3 col-md-6 me-auto">
+    <div class="row gx-3 gy-3">
+        <div class="col-lg-3 col-md-6 col-6">
             <label style="font-weight: 700">Order No</label>
             <input type="text" id="order" placeholder="Search..." class="form-control">
-
         </div>
-       
-        <div class="col-lg-3 col-md-6 me-auto">
+
+        <div class="col-lg-3 col-md-6 col-6">
             <label style="font-weight: 700">Name</label>
             <input type="text" id="cname" placeholder="Search..." class="form-control">
-
         </div>
-        <div class="col-lg-3 col-md-6 me-auto">
+
+        <div class="col-lg-3 col-md-6 col-6">
             <label style="font-weight: 700">Phone No</label>
             <input type="text" id="phone" placeholder="Search..." class="form-control">
-
         </div>
-        <div class="col-lg-3 col-md-6 me-auto" style="margin-top: 25px;">
+
+        <div class="col-lg-3 col-md-6 col-6">
             <label style="font-weight: 700">Email</label>
             <input type="text" id="email" placeholder="Search..." class="form-control">
-
         </div>
 
-        <div class="col-lg-3 col-md-6" style="margin-top: 25px;">
+        <div class="col-lg-3 col-md-6 col-6">
             <label style="font-weight: 700">Date Range</label>
-            <input type="text" class="form-control " id="daterange-btn" value='{{old('date_range')}}' name='date_range'>
-
+            <input type="text" class="form-control" id="daterange-btn" value='{{old('date_range')}}' name='date_range'>
         </div>
 
-        
-
-        <div class="col-lg-2 col-6 col-md-3" style="margin-top: 25px;">
+        <div class="col-lg-3 col-md-6 col-6">
             <label style="font-weight: 700">Payment</label>
-
             <select class="form-select" name="payment" id="payment">
                 <option value="">All</option>
                 <option value="{{\App\Models\Order::CASH}}">CASH</option>
                 <option value="{{\App\Models\Order::ONLINE}}">Credit</option>
-                
-                
-                                    
             </select>
         </div>
 
-
-        <div class="col-lg-12 col-6 col-md-3" style="text-align: center">
-
-            <button class="btn btn-success-light mt-20 search" style="width: 30%">Search</button>
+        <div class="col-12" style="text-align: center">
+            <button class="btn btn-success-light search" style="width: 30%">Search</button>
         </div>
     </div>
 </header>
@@ -82,110 +71,7 @@
 
     <!-- card-header end// -->
     <div class="card-body" id="update-table">
-        <div class="table-responsive">
-            <table id="myTable" class="table table-hover table-striped ">
-                <thead>
-                    <tr style="text-align: center;">
-                        {{-- <th><input type="checkbox" name="select_all"  ></th>--}}
-                        <th>#Sr</th>
-                        <th scope="col">Order #</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Phone Number</th>
-                        <th scope="col">Date</th>
-
-                        <th scope="col">Payment Method</th>
-                         <th scope="col">Website Order</th>
-                        <th scope="col">Total Amount</th>
-                        <th scope="col" class="text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody><?php $sr = 1; ?>
-                    @foreach($allOrders as $order)
-
-                    @if($order->additional_notes)
-                    <tr style="text-align: center;background-color:#ffcaca;">
-                        @else
-                    <tr style="text-align: center;">
-                        @endif
-                        {{-- <td><input type="checkbox" class="pending" name="pen_order" value="{{$order->id}}"></td>--}}
-                        <td>{{$sr++}}</td>
-                        <td><b>{{$order->order_no}}</b>
-                           
-                        </td>
-                        <td>
-                            {{$order->name}}
-                        </td>
-                        <td>
-                            {{$order->phone_number}}
-                        </td>
-                        
-
-                        <td>{{date('d M, Y',strtotime($order->created_at))}}</td>
-
-                        <td>
-                            @if($order->payment_method == \App\Models\Order::CASH)
-                            CASH
-                            @elseif($order->payment_method == \App\Models\Order::ONLINE)
-                            Credit
-                            @endif
-                        </td>
-
-                     <td>
-                        <b>{{ $order->is_website_order ? 'Yes' : 'No' }}</b>
-                    </td>
-
-                        <td><b>{{number_format($order->total_amount)}}</b>
-                        </td>
-                        <td>
-                            @if($order->website_order)
-                            Yes
-                            @else
-                            No
-                            @endif
-                        </td>
-
-
-                        <td class="text-end">
-                           
-                            <a target="_blank" href="{{route('orders.show',$order->id)}}" class="btn btn-md rounded font-sm">Detail</a>
-                            
-
-                            <div class="dropdown">
-                                <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm"> <i class="material-icons md-more_horiz"></i> </a>
-                                <div class="dropdown-menu">
-                                   
-                                    <a class="dropdown-item" href="{{route('orders.edit',$order->id)}}">Edit info</a>
-                                    
-                                   
-                                   
-                                   
-                                    
-                                 
-                                </div>
-                            </div>
-                            <!-- dropdown //end -->
-                        </td>
-
-                    </tr>
-                    @endforeach
-
-                </tbody>
-            </table>
-        </div>
-
-        <br>
-        <label>Total Records {{$allOrders->count()}} of {{$allOrders->total()}}</label>
-        <br>
-
-        <div class="pagination-area mt-30 mb-50">
-            <nav aria-label="Page navigation example">
-                <ul class="pagination justify-content-start">
-                    {{$allOrders->links()}}
-                </ul>
-            </nav>
-        </div>
-
-        <!-- table-responsive //end -->
+        @include('order.orders-table')
     </div>
     <!-- card-body end// -->
 </div>
@@ -204,7 +90,7 @@
             'ordering': false,
             'sorting': false,
             'paging': false,
-            'pageLength': 500,
+            'pageLength': 50,
             'info': false,
             'searching': true
         });
@@ -235,52 +121,61 @@
         }
     );
 
-    $(document).on('click', '.search', function(e) {
+    function loadOrders(url, data) {
 
         document.getElementById('update-table').style.opacity = '.1';
 
-        date_range = $('#daterange-btn').val();
-       
-       
-        payment = $('#payment').val();
-        order = $('#order').val();
-       
-        phone = $('#phone').val();
-        email = $('#email').val();
-        name = $('#cname').val();
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: data,
+            success: function(data) {
+                document.getElementById('update-table').innerHTML = data;
+                $('#myTable').DataTable({
+                    'ordering': false,
+                    'sorting': false,
+                    'paging': false,
+                    'pageLength': 50,
+                    'info': false,
+                    'searching': true
+                });
+                document.getElementById('update-table').style.opacity = '1';
+            },
+            error: function() {
+                toastr.error('Something went wrong while loading orders');
+                document.getElementById('update-table').style.opacity = '1';
+            }
+        });
+    }
 
-        if (date_range || payment || order) {
+    $(document).on('click', '.search', function(e) {
 
-            $.ajax({
-                url: "{{route('orders.search')}}",
-                type: 'GET',
-                data: {
-                    date_range: date_range,
-                    payment: payment,
-                    order: order,
-                    phone: phone,
-                    email: email,
-                    name: name
-                },
-                success: function(data) {
-                    document.getElementById('update-table').innerHTML = data;
-                    $('#myTable').DataTable({
-                        'ordering': false,
-                        'sorting': false,
-                        'paging': false,
-                        'pageLength': 500,
-                        'info': false,
-                        'searching': true
-                    });
-                    document.getElementById('update-table').style.opacity = '1';
-                }
+        var date_range = $('#daterange-btn').val();
+        var payment = $('#payment').val();
+        var order = $('#order').val();
+        var phone = $('#phone').val();
+        var email = $('#email').val();
+        var name = $('#cname').val();
+
+        if (date_range || payment || order || phone || email || name) {
+            loadOrders("{{route('orders.search')}}", {
+                date_range: date_range,
+                payment: payment,
+                order: order,
+                phone: phone,
+                email: email,
+                name: name
             });
         } else {
             toastr.warning('Please select any option');
-            document.getElementById('update-table').style.opacity = '1';
         }
+    });
 
-
+    // Pagination links load via ajax so filters are kept between pages
+    $(document).on('click', '#update-table .pagination a', function(e) {
+        e.preventDefault();
+        loadOrders($(this).attr('href'), {});
+        window.scrollTo({ top: $('#update-table').offset().top - 100, behavior: 'smooth' });
     });
     
     
